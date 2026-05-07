@@ -1,0 +1,17 @@
+{
+  "name": "unity-scanner",
+  "version": "1.0.0",
+  "displayName": "Unity-Scanner",
+  "description": "Unified project analysis",
+  "unity": "2022.3",
+  "keywords": [
+    "tool",
+    "assets",
+    "analysis",
+    "issues"
+  ],
+  "author": {
+    "name": "AlexeyPerov",
+    "url": "https://github.com/AlexeyPerov/Unity-Scanner"
+  }
+}
