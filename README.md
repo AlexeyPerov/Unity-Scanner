@@ -2,7 +2,7 @@
 
 ##
 A unified Unity Editor tool for project health analysis across 14 categories.
-Combines dependency scanning, missing reference detection, material/texture/shader auditing, addressables analysis, and platform readiness checks — all in one modular window with batch API support.
+Combines dependency scanning, addressables build layout analysis, missing reference detection, material/texture/shader auditing, and platform readiness checks — all in one modular window with batch API support.
 
 **Menu:** `Tools > Unity Scanner`
 
@@ -61,6 +61,27 @@ UnityScannerBatch.RunMissingReferences();
 UnityScannerBatch.RunShaderAnalysis(new BatchOptions { PlatformProfile = "mobile" });
 UnityScannerBatch.RunBuildPlatformReadiness(new BatchOptions { FailOnSeverity = "error" });
 ```
+
+## Analysis Examples
+
+
+| Analysis Start                             | Analysis Done                      |
+|--------------------------------------------|-------------------------------------------|
+| ![plot](./Screenshots~/us-setup-start.png) | ![plot](./Screenshots~/us-setup-done.png) |
+
+
+| All Types of Analysis                       | BuildLayout Analysis                       |
+|---------------------------------------------|--------------------------------------------|
+| ![plot](./Screenshots~/us-menu-shaders.png) | ![plot](./Screenshots~/us-buildlayout.png) |
+
+| Dependencies Analysis               | Missing Refs Analysis                   |
+|-------------------------------------|-----------------------------------------|
+| ![plot](./Screenshots~/us-deps.png) | ![plot](./Screenshots~/us-missrefs.png) |
+
+
+| Summary Table                               | Summary List                                 |
+|---------------------------------------------|----------------------------------------------|
+| ![plot](./Screenshots~/us-summary-list.png) | ![plot](./Screenshots~/us-summary-table.png) |
 
 ## Settings
 
