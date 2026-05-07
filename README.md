@@ -174,6 +174,43 @@ Each category follows the same structure:
 
 ---
 
+## Installation
+
+1. Using Unity's Package Manager via link https://github.com/AlexeyPerov/Unity-Scanner.git
+2. You can also just copy and paste all files inside Editor folder
+
 ## Contributions
 
 Feel free to report bugs, request new features or to contribute to this project!
+
+## Other tools
+
+##### Dependencies Hunter
+
+- To find unreferenced assets in Unity project see [Dependencies-Hunter](https://github.com/AlexeyPerov/Unity-Dependencies-Hunter).
+
+##### Addressables Inspector
+
+- To analyze addressables layout [Addressables-Inspector](https://github.com/AlexeyPerov/Unity-Addressables-Inspector).
+
+##### Missing References Hunter
+
+- To find missing or empty references in your assets see [Missing-References-Hunter](https://github.com/AlexeyPerov/Unity-MissingReferences-Hunter).
+
+##### Materials Hunter
+
+- To analyze your materials and renderers see [Materials-Hunter](https://github.com/AlexeyPerov/Unity-Materials-Hunter).
+
+##### Textures Hunter
+
+- To analyze your textures and atlases see [Textures-Hunter](https://github.com/AlexeyPerov/Unity-Textures-Hunter).
+
+##### Asset Inspector
+
+- To analyze asset dependencies [Asset-Inspector](https://github.com/AlexeyPerov/Unity-Asset-Inspector).
+
+##### Editor Coroutines
+
+- Unity Editor Coroutines alternative version [Lite-Editor-Coroutines](https://github.com/AlexeyPerov/Unity-Lite-Editor-Coroutines).
+- Simplified and compact version [Pocket-Editor-Coroutines](https://github.com/AlexeyPerov/Unity-Pocket-Editor-Coroutines).
+
