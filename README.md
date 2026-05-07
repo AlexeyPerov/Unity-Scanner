@@ -2,7 +2,7 @@
 
 ##
 A unified Unity Editor tool for project health analysis across 14 categories.
-Combines dependency scanning, addressables build layout analysis, missing reference detection, material/texture/shader auditing, and platform readiness checks — all in one modular window with batch API support.
+Combines dependency scanning, addressables build layout analysis, missing reference detection, material/texture/shader auditing, and platform readiness checks — all in one tool with batch API support.
 
 **Menu:** `Tools > Unity Scanner`
 
