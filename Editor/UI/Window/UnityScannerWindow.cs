@@ -112,6 +112,27 @@ namespace UnityScanner.UI.Window
         private Vector2 _helpScroll;
         private bool _categoryInfoFoldout;
 
+        private int _cachedAssetCount = -1;
+        private int _cachedEnabledCount = -1;
+        private int _cachedTotalIssues = -1;
+
+        private static readonly GUIContent BrowseButtonContent = new GUIContent("Browse...", "Browse for a BuildLayout.txt file");
+        private static readonly GUIContent ClearButtonContent = new GUIContent("Clear", "Clear the build layout path");
+        private static readonly GUIContent SelectAllContent = new GUIContent("Select All", "Select all categories for scanning");
+        private static readonly GUIContent DeselectAllContent = new GUIContent("Deselect All", "Deselect all categories");
+        private static readonly GUIContent ViewButtonContent = new GUIContent("View", "Open this category tab");
+        private static readonly GUIContent RunAllContent = new GUIContent("Run All Selected", "Run scan for all selected categories");
+        private static readonly GUIContent RunFailedContent = new GUIContent("Run Failed", "Re-run only categories that failed last time");
+        private static readonly GUIContent RunSkippedContent = new GUIContent("Run Skipped", "Re-run only categories that were skipped last time");
+        private static readonly GUIContent CancelScanContent = new GUIContent("Cancel", "Cancel the running scan");
+        private static readonly GUIContent ViewSummaryContent = new GUIContent("View Summary", "Open the Summary tab");
+        private static readonly GUIContent PrevTabContent = new GUIContent("<", "Previous tab");
+        private static readonly GUIContent NextTabContent = new GUIContent(">", "Next tab");
+
+        private static readonly Color DoneOkColor = new Color(0.6f, 0.9f, 0.6f);
+        private static readonly Color FailedStateColor = new Color(1f, 0.5f, 0.5f);
+        private static readonly Color VerboseColor = new Color(0.7f, 0.7f, 0.7f);
+
         private readonly (string name, MainTab tab, string description)[] _allTabs =
         {
             ("Setup", MainTab.Setup, ""),
@@ -227,6 +248,10 @@ namespace UnityScanner.UI.Window
             InitTabStates();
 
             _buildLayoutFolderCache = EditorPrefs.GetString(BuildLayoutFolderPref, "Library");
+
+            _cachedAssetCount = -1;
+            _cachedEnabledCount = -1;
+            _cachedTotalIssues = -1;
 
             var savedProfile = EditorPrefs.GetString(PlatformProfilePref, PlatformProfilePresets.Mobile);
             _settings.SetPlatformProfile(savedProfile);
@@ -428,6 +453,7 @@ namespace UnityScanner.UI.Window
 
         private void SaveEnabledCategories()
         {
+            _cachedEnabledCount = -1;
             var enabled = _registry.Categories
                 .Where(c => c.Settings.Enabled)
                 .Select(c => c.Id);
@@ -478,7 +504,7 @@ namespace UnityScanner.UI.Window
 
             var currentIdx = FindTabIndex(_currentTab);
             EditorGUI.BeginDisabledGroup(currentIdx < 0);
-            if (GUILayout.Button(new GUIContent("<", "Previous tab"), EditorStyles.toolbarButton, GUILayout.Width(24)))
+            if (GUILayout.Button(PrevTabContent, EditorStyles.toolbarButton, GUILayout.Width(24)))
             {
                 var prevIdx = currentIdx;
                 do { prevIdx = (prevIdx - 1 + _allTabs.Length) % _allTabs.Length; }
@@ -488,7 +514,7 @@ namespace UnityScanner.UI.Window
             EditorGUI.EndDisabledGroup();
 
             EditorGUI.BeginDisabledGroup(currentIdx < 0);
-            if (GUILayout.Button(new GUIContent(">", "Next tab"), EditorStyles.toolbarButton, GUILayout.Width(24)))
+            if (GUILayout.Button(NextTabContent, EditorStyles.toolbarButton, GUILayout.Width(24)))
             {
                 var nextIdx = currentIdx;
                 do { nextIdx = (nextIdx + 1) % _allTabs.Length; }
@@ -554,9 +580,9 @@ namespace UnityScanner.UI.Window
             return state switch
             {
                 TabState.Running => Color.cyan,
-                TabState.DoneNoIssues => new Color(0.6f, 0.9f, 0.6f),
+                TabState.DoneNoIssues => DoneOkColor,
                 TabState.DoneHasIssues => Color.yellow,
-                TabState.Failed => new Color(1f, 0.5f, 0.5f),
+                TabState.Failed => FailedStateColor,
                 TabState.Skipped => Color.gray,
                 _ => Color.white
             };
@@ -614,7 +640,7 @@ namespace UnityScanner.UI.Window
 
                 GUILayout.FlexibleSpace();
 
-                if (GUILayout.Button(new GUIContent("Cancel", "Cancel the running scan"), EditorStyles.miniButton, GUILayout.Width(60)))
+                if (GUILayout.Button(CancelScanContent, EditorStyles.miniButton, GUILayout.Width(60)))
                 {
                     _orchestrator.Cancel();
                 }
@@ -676,9 +702,11 @@ namespace UnityScanner.UI.Window
             GUILayout.Space(10);
             GUILayout.Label("Unity Scanner Setup", EditorStyles.boldLabel);
 
-            var assetCount = AssetDatabase.GetAllAssetPaths().Count(p => p.StartsWith("Assets/"));
+            if (_cachedAssetCount < 0)
+                _cachedAssetCount = AssetDatabase.GetAllAssetPaths().Count(p => p.StartsWith("Assets/"));
+            var assetCount = _cachedAssetCount;
             if (assetCount > 10000)
-                EditorGUILayout.HelpBox($"Project has {assetCount:N0} assets. Scanning may take several minutes. Consider using path filters to narrow scope.", MessageType.Warning);
+                EditorGUILayout.HelpBox($"Project has {assetCount:N0} assets. Scanning may take several minutes.", MessageType.Warning);
 
             GUILayout.Space(5);
 
@@ -701,7 +729,7 @@ namespace UnityScanner.UI.Window
             GUILayout.TextField(string.IsNullOrEmpty(_settings.BuildLayoutPath) ? "(none)" : _settings.BuildLayoutPath,
                 GUILayout.ExpandWidth(true));
 
-            if (GUILayout.Button(new GUIContent("Browse...", "Browse for a BuildLayout.txt file"), GUILayout.Width(80)))
+            if (GUILayout.Button(BrowseButtonContent, GUILayout.Width(80)))
             {
                 var path = EditorUtility.OpenFilePanelWithFilters("Select BuildLayout.txt",
                     _buildLayoutFolderCache, new[] { "Text Files (*.txt)", "txt" });
@@ -714,7 +742,7 @@ namespace UnityScanner.UI.Window
                 }
             }
 
-            if (GUILayout.Button(new GUIContent("Clear", "Clear the build layout path"), GUILayout.Width(50)))
+            if (GUILayout.Button(ClearButtonContent, GUILayout.Width(50)))
             {
                 _settings.BuildLayoutPath = "";
                 _buildLayoutPathDisplay = "";
@@ -732,14 +760,14 @@ namespace UnityScanner.UI.Window
             GUILayout.Label("Categories", EditorStyles.boldLabel);
 
             EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button(new GUIContent("Select All", "Select all categories for scanning"), GUILayout.Width(80)))
+            if (GUILayout.Button(SelectAllContent, GUILayout.Width(80)))
             {
                 foreach (var cat in _registry.Categories)
                     cat.Settings.Enabled = true;
                 SaveEnabledCategories();
             }
 
-            if (GUILayout.Button(new GUIContent("Deselect All", "Deselect all categories"), GUILayout.Width(80)))
+            if (GUILayout.Button(DeselectAllContent, GUILayout.Width(80)))
             {
                 foreach (var cat in _registry.Categories)
                     cat.Settings.Enabled = false;
@@ -796,7 +824,7 @@ namespace UnityScanner.UI.Window
 
                 var hasResult = _tabResults.ContainsKey(cat.Id);
                 EditorGUI.BeginDisabledGroup(!hasResult);
-                if (GUILayout.Button(new GUIContent("View", "Open this category tab"), EditorStyles.miniButton, GUILayout.Width(50)))
+                if (GUILayout.Button(ViewButtonContent, EditorStyles.miniButton, GUILayout.Width(50)))
                     _currentTab = tab;
                 EditorGUI.EndDisabledGroup();
 
@@ -812,18 +840,18 @@ namespace UnityScanner.UI.Window
             EditorGUILayout.BeginHorizontal();
             EditorGUI.BeginDisabledGroup(_isRunning);
 
-            if (GUILayout.Button(new GUIContent("Run All Selected", "Run scan for all selected categories"), GUILayout.Width(150), GUILayout.Height(30)))
+            if (GUILayout.Button(RunAllContent, GUILayout.Width(150), GUILayout.Height(30)))
                 StartScanAll();
 
-            if (GUILayout.Button(new GUIContent("Run Failed", "Re-run only categories that failed last time"), GUILayout.Width(100), GUILayout.Height(30)))
+            if (GUILayout.Button(RunFailedContent, GUILayout.Width(100), GUILayout.Height(30)))
                 StartScanFailed();
 
-            if (GUILayout.Button(new GUIContent("Run Skipped", "Re-run only categories that were skipped last time"), GUILayout.Width(100), GUILayout.Height(30)))
+            if (GUILayout.Button(RunSkippedContent, GUILayout.Width(100), GUILayout.Height(30)))
                 StartScanSkipped();
 
             EditorGUI.EndDisabledGroup();
 
-            if (_isRunning && GUILayout.Button(new GUIContent("Cancel", "Cancel the running scan"), GUILayout.Width(80), GUILayout.Height(30)))
+            if (_isRunning && GUILayout.Button(CancelScanContent, GUILayout.Width(80), GUILayout.Height(30)))
                 _orchestrator.Cancel();
 
             EditorGUILayout.EndHorizontal();
@@ -833,19 +861,20 @@ namespace UnityScanner.UI.Window
         {
             GUILayout.Label("Scope Summary", EditorStyles.boldLabel);
 
-            var enabledCount = _registry.Categories.Count(c => c.Settings.Enabled);
-            GUILayout.Label($"Enabled categories: {enabledCount}/{_registry.Categories.Count}", EditorStyles.miniLabel);
+            if (_cachedEnabledCount < 0)
+                _cachedEnabledCount = _registry.Categories.Count(c => c.Settings.Enabled);
+            GUILayout.Label($"Enabled categories: {_cachedEnabledCount}/{_registry.Categories.Count}", EditorStyles.miniLabel);
 
             if (_lastAggregate != null)
             {
-                var completedCount = _lastAggregate.Results.Count;
-                var totalIssues = _lastAggregate.Results.Sum(r => r.Issues.Count);
+                if (_cachedTotalIssues < 0)
+                    _cachedTotalIssues = _lastAggregate.Results.Sum(r => r.Issues.Count);
                 GUILayout.Label(
-                    $"Last scan: {completedCount} categories completed, {totalIssues} total issues, {_lastAggregate.TotalDurationMs:F0}ms",
+                    $"Last scan: {_lastAggregate.Results.Count} categories completed, {_cachedTotalIssues} total issues, {_lastAggregate.TotalDurationMs:F0}ms",
                     EditorStyles.miniLabel);
             }
 
-            if (GUILayout.Button(new GUIContent("View Summary", "Open the Summary tab"), GUILayout.Width(150)))
+            if (GUILayout.Button(ViewSummaryContent, GUILayout.Width(150)))
                 _currentTab = MainTab.Summary;
         }
 
@@ -957,7 +986,7 @@ namespace UnityScanner.UI.Window
                     {
                         UnityScannerIssueSeverity.Error => Color.red,
                         UnityScannerIssueSeverity.Warning => Color.yellow,
-                        UnityScannerIssueSeverity.Verbose => new Color(0.7f, 0.7f, 0.7f),
+                        UnityScannerIssueSeverity.Verbose => VerboseColor,
                         _ => Color.cyan
                     };
                     USGUIUtilities.DrawColoredLabel($"[{issue.Severity}]", sevColor, 70);
@@ -1096,7 +1125,7 @@ namespace UnityScanner.UI.Window
 
             GUILayout.Label("Category:", GUILayout.Width(55));
 
-            var allCats = _registry.Categories.ToList();
+            var allCats = _registry.Categories;
             var prevColor = GUI.color;
 
             var allSelected = _summarySelectedCategories.Count == 0 ||
@@ -1744,7 +1773,8 @@ namespace UnityScanner.UI.Window
                 _coroutineStack.Push(nested);
             }
 
-            Repaint();
+            if (moved)
+                Repaint();
         }
 
         private UnityScannerScanContext BuildScanContext()
@@ -1771,6 +1801,7 @@ namespace UnityScanner.UI.Window
             yield return _orchestrator.RunAll(context, aggregate =>
             {
                 _lastAggregate = aggregate;
+                _cachedTotalIssues = -1;
                 ProcessResults(aggregate);
                 _isRunning = false;
                 _currentProgress = null;
@@ -1867,6 +1898,7 @@ namespace UnityScanner.UI.Window
 
         private void UpdateAggregate()
         {
+            _cachedTotalIssues = -1;
             _lastAggregate = new UnityScannerAggregateResult();
             foreach (var kvp in _tabResults)
                 _lastAggregate.Results.Add(kvp.Value);

@@ -59,6 +59,8 @@ namespace UnityScanner.Categories.Addressables
         private Vector2 _groupsScroll;
         private readonly USPaginationSettings _groupsPagination = new() { PageToShow = 0, PageSize = 20 };
         private int _groupsSortType;
+        private bool _groupsNeedInitialSort = true;
+        private BuildLayoutProvider _lastSortedLayout;
         private BuildLayoutProvider.Group _selectedGroup;
         private Vector2 _selectedGroupScroll;
         private readonly Dictionary<BuildLayoutProvider.Archive, USAddressablesArchiveUiState> _archiveUIStates = new();
@@ -288,6 +290,13 @@ namespace UnityScanner.Categories.Addressables
         private void DrawGroups()
         {
             if (Layout == null) return;
+
+            if (_groupsNeedInitialSort || _lastSortedLayout != Layout)
+            {
+                SortGroups();
+                _groupsNeedInitialSort = false;
+                _lastSortedLayout = Layout;
+            }
 
             if (_selectedGroup != null)
             {

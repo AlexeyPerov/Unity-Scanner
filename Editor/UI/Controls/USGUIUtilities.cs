@@ -63,15 +63,26 @@ namespace UnityScanner.UI.Controls
             GUI.skin.button.alignment = alignment;
         }
 
+        private static GUIStyle _wordWrapLabelStyle;
+
+        private static GUIStyle WordWrapLabelStyle
+        {
+            get
+            {
+                if (_wordWrapLabelStyle == null)
+                    _wordWrapLabelStyle = new GUIStyle(EditorStyles.label) { wordWrap = true };
+                return _wordWrapLabelStyle;
+            }
+        }
+
         public static void DrawColoredLabel(string text, Color color, int? width = null)
         {
             var prevColor = GUI.color;
             GUI.color = color;
-            var textStyle = new GUIStyle(EditorStyles.label) { wordWrap = true };
             if (width.HasValue)
-                GUILayout.Label(text, textStyle, GUILayout.Width(width.Value));
+                GUILayout.Label(text, WordWrapLabelStyle, GUILayout.Width(width.Value));
             else
-                GUILayout.Label(text, textStyle);
+                GUILayout.Label(text, WordWrapLabelStyle);
 
             GUI.color = prevColor;
         }
@@ -80,11 +91,10 @@ namespace UnityScanner.UI.Controls
         {
             var prevColor = GUI.color;
             GUI.color = color;
-            var textStyle = new GUIStyle(EditorStyles.label) { wordWrap = true };
             if (width.HasValue)
-                GUILayout.Label(content, textStyle, GUILayout.Width(width.Value));
+                GUILayout.Label(content, WordWrapLabelStyle, GUILayout.Width(width.Value));
             else
-                GUILayout.Label(content, textStyle);
+                GUILayout.Label(content, WordWrapLabelStyle);
 
             GUI.color = prevColor;
         }

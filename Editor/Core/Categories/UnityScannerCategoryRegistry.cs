@@ -9,13 +9,23 @@ namespace UnityScanner.Core.Categories
         private readonly Dictionary<string, IUnityScannerCategory> _categories = new Dictionary<string, IUnityScannerCategory>();
         private readonly Dictionary<string, IUnityScannerFixProvider> _fixProviders = new Dictionary<string, IUnityScannerFixProvider>();
         private readonly List<IUnityScannerExporter> _exporters = new List<IUnityScannerExporter>();
+        private List<IUnityScannerCategory> _cachedCategoriesList;
 
-        public IReadOnlyList<IUnityScannerCategory> Categories => _categories.Values.ToList();
+        public IReadOnlyList<IUnityScannerCategory> Categories
+        {
+            get
+            {
+                if (_cachedCategoriesList == null)
+                    _cachedCategoriesList = new List<IUnityScannerCategory>(_categories.Values);
+                return _cachedCategoriesList;
+            }
+        }
         public IReadOnlyList<IUnityScannerExporter> Exporters => _exporters;
 
         public void RegisterCategory(IUnityScannerCategory category)
         {
             _categories[category.Id] = category;
+            _cachedCategoriesList = null;
         }
 
         public void RegisterFixProvider(string categoryId, IUnityScannerFixProvider provider)
@@ -50,6 +60,7 @@ namespace UnityScanner.Core.Categories
             _categories.Clear();
             _fixProviders.Clear();
             _exporters.Clear();
+            _cachedCategoriesList = null;
         }
     }
 }
