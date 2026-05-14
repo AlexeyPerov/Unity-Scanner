@@ -19,6 +19,8 @@ namespace UnityScanner.Categories.ParticleSystemAnalysis
             {
                 if (settings.CheckEmission && data.EmissionRate > profile.MaxParticleEmissionRate)
                 {
+                    data.AddWarning("Particle system emission rate " + data.EmissionRate + " exceeds threshold " + profile.MaxParticleEmissionRate +
+                        (data.IsBurst ? " (burst)" : "") + ".");
                     issues.Add(MakeIssue("particle_emission_excessive",
                         "Particle system emission rate " + data.EmissionRate + " exceeds threshold " + profile.MaxParticleEmissionRate +
                         (data.IsBurst ? " (burst)" : "") + ".",
@@ -30,6 +32,7 @@ namespace UnityScanner.Categories.ParticleSystemAnalysis
 
                 if (settings.CheckCollision && data.CollisionEnabled && !data.CollisionSendMessages)
                 {
+                    data.AddInfo("Collision module enabled but does not send collision messages. Consider disabling for CPU savings.");
                     issues.Add(MakeIssue("particle_collision_unnecessary",
                         "Collision module enabled but does not send collision messages. Consider disabling for CPU savings.",
                         UnityScannerIssueSeverity.Info, data.AssetPath,
@@ -39,6 +42,7 @@ namespace UnityScanner.Categories.ParticleSystemAnalysis
 
                 if (settings.CheckOverdraw && data.TrailEnabled && data.TrailLifetime > profile.MaxParticleTrailLifetime)
                 {
+                    data.AddWarning("Trail lifetime " + data.TrailLifetime.ToString("F1") + "s exceeds threshold " + profile.MaxParticleTrailLifetime.ToString("F1") + "s.");
                     issues.Add(MakeIssue("particle_trail_overdraw",
                         "Trail lifetime " + data.TrailLifetime.ToString("F1") + "s exceeds threshold " + profile.MaxParticleTrailLifetime.ToString("F1") + "s.",
                         UnityScannerIssueSeverity.Warning, data.AssetPath,
@@ -48,6 +52,7 @@ namespace UnityScanner.Categories.ParticleSystemAnalysis
 
                 if (settings.CheckSubEmitters && data.SubEmitterChainDepth > 2)
                 {
+                    data.AddWarning("Sub-emitter chain depth " + data.SubEmitterChainDepth + " exceeds 2 levels.");
                     issues.Add(MakeIssue("particle_subemitter_chain",
                         "Sub-emitter chain depth " + data.SubEmitterChainDepth + " exceeds 2 levels.",
                         UnityScannerIssueSeverity.Warning, data.AssetPath,
@@ -57,6 +62,7 @@ namespace UnityScanner.Categories.ParticleSystemAnalysis
 
                 if (settings.CheckLOD && !string.IsNullOrEmpty(data.ScenePath) && !data.HasLOD)
                 {
+                    data.AddInfo("Particle system in scene has no LOD mechanism. Will simulate at full cost regardless of distance.");
                     issues.Add(MakeIssue("particle_no_lod",
                         "Particle system in scene has no LOD mechanism. Will simulate at full cost regardless of distance.",
                         UnityScannerIssueSeverity.Info, data.AssetPath,
@@ -65,6 +71,7 @@ namespace UnityScanner.Categories.ParticleSystemAnalysis
 
                 if (settings.CheckSimulationMismatch && data.SimulationSpace == "World" && data.MaxParticles > 1000)
                 {
+                    data.AddInfo("World simulation space with " + data.MaxParticles + " max particles. GPU simulation would be more efficient.");
                     issues.Add(MakeIssue("particle_cpu_simulation_mismatch",
                         "World simulation space with " + data.MaxParticles + " max particles. GPU simulation would be more efficient.",
                         UnityScannerIssueSeverity.Info, data.AssetPath,
@@ -74,6 +81,7 @@ namespace UnityScanner.Categories.ParticleSystemAnalysis
 
                 if (settings.CheckTextures && data.MainTextureSize > profile.MaxTextureSize)
                 {
+                    data.AddWarning("Particle texture " + data.MainTextureSize + "px exceeds max " + profile.MaxTextureSize + "px.");
                     issues.Add(MakeIssue("particle_texture_oversized",
                         "Particle texture " + data.MainTextureSize + "px exceeds max " + profile.MaxTextureSize + "px.",
                         UnityScannerIssueSeverity.Warning, data.AssetPath,
@@ -84,6 +92,7 @@ namespace UnityScanner.Categories.ParticleSystemAnalysis
 
                 if (settings.CheckModuleCount && data.ActiveModuleCount > profile.MaxParticleSystemModules)
                 {
+                    data.AddInfo("Active module count " + data.ActiveModuleCount + " exceeds threshold " + profile.MaxParticleSystemModules + ".");
                     issues.Add(MakeIssue("particle_module_count_excessive",
                         "Active module count " + data.ActiveModuleCount + " exceeds threshold " + profile.MaxParticleSystemModules + ".",
                         UnityScannerIssueSeverity.Info, data.AssetPath,

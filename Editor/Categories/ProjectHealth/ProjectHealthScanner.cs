@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,48 +13,61 @@ namespace UnityScanner.Categories.ProjectHealth
 {
     public static class ProjectHealthScanner
     {
-        public static void ScanAll(
+        public static IEnumerator ScanAll(
             ProjectHealthSettings settings,
             List<ProjectHealthEntry> results,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            int yieldInterval)
         {
             var assetRoot = Path.GetFullPath("Assets");
 
             if (settings.CheckEmptyFolders || settings.CheckLargeFolders || settings.CheckDeepNesting)
             {
-                ScanFolders(settings, assetRoot, results, issueSink);
+                var e = ScanFolders(settings, assetRoot, results, issueSink, yieldInterval);
+                while (e.MoveNext()) yield return e.Current;
             }
 
             if (settings.CheckOrphanedMeta)
             {
-                ScanOrphanedMeta(settings, assetRoot, results, issueSink);
+                var e = ScanOrphanedMeta(settings, assetRoot, results, issueSink, yieldInterval);
+                while (e.MoveNext()) yield return e.Current;
             }
 
             if (settings.CheckBrokenAssets)
             {
-                ScanBrokenAssets(settings, results, issueSink);
+                var e = ScanBrokenAssets(settings, results, issueSink, yieldInterval);
+                while (e.MoveNext()) yield return e.Current;
             }
 
             if (settings.CheckEmptyScenes)
             {
-                ScanEmptyScenes(settings, results, issueSink);
+                var e = ScanEmptyScenes(settings, results, issueSink, yieldInterval);
+                while (e.MoveNext()) yield return e.Current;
             }
         }
 
-        private static void ScanFolders(
+        private static IEnumerator ScanFolders(
             ProjectHealthSettings settings, string assetRoot,
-            List<ProjectHealthEntry> results, IUnityScannerIssueSink issueSink)
+            List<ProjectHealthEntry> results, IUnityScannerIssueSink issueSink,
+            int yieldInterval)
         {
             var dirs = new List<string>();
             try
             {
                 dirs = Directory.EnumerateDirectories(assetRoot, "*", SearchOption.AllDirectories).ToList();
             }
-            catch { return; }
+            catch { yield break; }
 
             var total = dirs.Count;
             for (var i = 0; i < dirs.Count; i++)
             {
+                if (yieldInterval > 0 && i > 0 && i % yieldInterval == 0)
+                {
+                    System.GC.Collect();
+                    yield return 0.05f;
+                    System.GC.Collect();
+                }
+
                 if (i % 100 == 0)
                     issueSink.ReportProgress((float)i / total * 0.4f, "Scanning folders...");
 
@@ -152,20 +166,28 @@ namespace UnityScanner.Categories.ProjectHealth
             }
         }
 
-        private static void ScanOrphanedMeta(
+        private static IEnumerator ScanOrphanedMeta(
             ProjectHealthSettings settings, string assetRoot,
-            List<ProjectHealthEntry> results, IUnityScannerIssueSink issueSink)
+            List<ProjectHealthEntry> results, IUnityScannerIssueSink issueSink,
+            int yieldInterval)
         {
             var metaFiles = new List<string>();
             try
             {
                 metaFiles = Directory.EnumerateFiles(assetRoot, "*.meta", SearchOption.AllDirectories).ToList();
             }
-            catch { return; }
+            catch { yield break; }
 
             var total = metaFiles.Count;
             for (var i = 0; i < metaFiles.Count; i++)
             {
+                if (yieldInterval > 0 && i > 0 && i % yieldInterval == 0)
+                {
+                    System.GC.Collect();
+                    yield return 0.05f;
+                    System.GC.Collect();
+                }
+
                 if (i % 200 == 0)
                     issueSink.ReportProgress(0.4f + (float)i / total * 0.2f, "Scanning orphaned .meta files...");
 
@@ -193,16 +215,24 @@ namespace UnityScanner.Categories.ProjectHealth
             }
         }
 
-        private static void ScanBrokenAssets(
+        private static IEnumerator ScanBrokenAssets(
             ProjectHealthSettings settings,
             List<ProjectHealthEntry> results,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            int yieldInterval)
         {
             var assetPaths = AssetDatabase.GetAllAssetPaths();
             var total = assetPaths.Length;
 
             for (var i = 0; i < assetPaths.Length; i++)
             {
+                if (yieldInterval > 0 && i > 0 && i % yieldInterval == 0)
+                {
+                    System.GC.Collect();
+                    yield return 0.05f;
+                    System.GC.Collect();
+                }
+
                 if (i % 500 == 0)
                     issueSink.ReportProgress(0.6f + (float)i / total * 0.25f, "Scanning for broken assets...");
 
@@ -257,16 +287,24 @@ namespace UnityScanner.Categories.ProjectHealth
             }
         }
 
-        private static void ScanEmptyScenes(
+        private static IEnumerator ScanEmptyScenes(
             ProjectHealthSettings settings,
             List<ProjectHealthEntry> results,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            int yieldInterval)
         {
             var sceneGuids = AssetDatabase.FindAssets("t:Scene");
             var total = sceneGuids.Length;
 
             for (var i = 0; i < sceneGuids.Length; i++)
             {
+                if (yieldInterval > 0 && i > 0 && i % yieldInterval == 0)
+                {
+                    System.GC.Collect();
+                    yield return 0.05f;
+                    System.GC.Collect();
+                }
+
                 if (i % 5 == 0)
                     issueSink.ReportProgress(0.85f + (float)i / total * 0.15f, "Scanning for empty scenes...");
 

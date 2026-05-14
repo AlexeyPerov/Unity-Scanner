@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,17 +13,25 @@ namespace UnityScanner.Categories.AudioAnalysis
 {
     public static class AudioAnalysisScanner
     {
-        public static void ScanAll(
+        public static IEnumerator ScanAll(
             AudioAnalysisSettings settings,
             PlatformProfile profile,
             List<AudioClipData> clips,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            int yieldInterval)
         {
             var audioGuids = AssetDatabase.FindAssets("t:AudioClip");
             var total = audioGuids.Length;
 
             for (var i = 0; i < audioGuids.Length; i++)
             {
+                if (yieldInterval > 0 && i > 0 && i % yieldInterval == 0)
+                {
+                    System.GC.Collect();
+                    yield return 0.05f;
+                    System.GC.Collect();
+                }
+
                 if (i % 100 == 0)
                     issueSink.ReportProgress((float)i / total * 0.7f, "Scanning audio clips...");
 

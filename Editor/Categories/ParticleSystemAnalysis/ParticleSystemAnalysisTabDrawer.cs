@@ -152,6 +152,9 @@ namespace UnityScanner.Categories.ParticleSystemAnalysis
             if (GUILayout.Button(new GUIContent(isExpanded ? "v" : ">", "Expand/collapse"), EditorStyles.miniButton, GUILayout.Width(18)))
                 _expandedRow = isExpanded ? -1 : index;
 
+            var sevColor = data.WarningLevel switch { >= 3 => Color.red, 2 => Color.yellow, 1 => Color.cyan, _ => Color.white };
+            USGUIUtilities.DrawColoredLabel(USGUIUtilities.GetSeverityTag(data.WarningLevel), sevColor, 75);
+
             var rateColor = data.EmissionRate > 500 ? Color.yellow : Color.white;
             USGUIUtilities.DrawColoredLabel("E:" + data.EmissionRate, rateColor, 60);
             EditorGUILayout.LabelField(index.ToString(), GUILayout.Width(30));
@@ -188,6 +191,7 @@ namespace UnityScanner.Categories.ParticleSystemAnalysis
                     GUILayout.Label("Sub-emitters: " + data.SubEmitterCount + " (chain depth: " + data.SubEmitterChainDepth + ")", EditorStyles.miniLabel);
                     GUI.color = prev;
                 }
+                USGUIUtilities.DrawCustomWarnings(data);
                 EditorGUILayout.EndVertical();
                 EditorGUI.indentLevel--;
             }
@@ -199,6 +203,9 @@ namespace UnityScanner.Categories.ParticleSystemAnalysis
             EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
             if (GUILayout.Button(new GUIContent(isExpanded ? "v" : ">", "Expand/collapse"), EditorStyles.miniButton, GUILayout.Width(18)))
                 _expandedRow = isExpanded ? -1 : index;
+
+            var sevColor = data.WarningLevel switch { >= 3 => Color.red, 2 => Color.yellow, 1 => Color.cyan, _ => Color.white };
+            USGUIUtilities.DrawColoredLabel(USGUIUtilities.GetSeverityTag(data.WarningLevel), sevColor, 75);
 
             var modColor = data.ActiveModuleCount > 10 ? Color.yellow : Color.white;
             USGUIUtilities.DrawColoredLabel("M:" + data.ActiveModuleCount, modColor, 45);
@@ -219,6 +226,7 @@ namespace UnityScanner.Categories.ParticleSystemAnalysis
                 foreach (var mod in data.ActiveModules)
                     GUILayout.Label("- " + mod, EditorStyles.miniLabel);
                 EditorGUI.indentLevel--;
+                USGUIUtilities.DrawCustomWarnings(data);
                 EditorGUILayout.EndVertical();
                 EditorGUI.indentLevel--;
             }
@@ -230,6 +238,9 @@ namespace UnityScanner.Categories.ParticleSystemAnalysis
             EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
             if (GUILayout.Button(new GUIContent(isExpanded ? "v" : ">", "Expand/collapse"), EditorStyles.miniButton, GUILayout.Width(18)))
                 _expandedRow = isExpanded ? -1 : index;
+
+            var sevColor = data.WarningLevel switch { >= 3 => Color.red, 2 => Color.yellow, 1 => Color.cyan, _ => Color.white };
+            USGUIUtilities.DrawColoredLabel(USGUIUtilities.GetSeverityTag(data.WarningLevel), sevColor, 75);
 
             if (!string.IsNullOrEmpty(data.MainTexturePath))
             {
@@ -265,6 +276,7 @@ namespace UnityScanner.Categories.ParticleSystemAnalysis
                 {
                     GUILayout.Label("No main texture assigned to particle material.", EditorStyles.miniLabel);
                 }
+                USGUIUtilities.DrawCustomWarnings(data);
                 EditorGUILayout.EndVertical();
                 EditorGUI.indentLevel--;
             }
@@ -276,6 +288,9 @@ namespace UnityScanner.Categories.ParticleSystemAnalysis
             EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
             if (GUILayout.Button(new GUIContent(isExpanded ? "v" : ">", "Expand/collapse"), EditorStyles.miniButton, GUILayout.Width(18)))
                 _expandedRow = isExpanded ? -1 : index;
+
+            var sevColor = data.WarningLevel switch { >= 3 => Color.red, 2 => Color.yellow, 1 => Color.cyan, _ => Color.white };
+            USGUIUtilities.DrawColoredLabel(USGUIUtilities.GetSeverityTag(data.WarningLevel), sevColor, 75);
 
             var colColor = data.CollisionEnabled && !data.CollisionSendMessages ? Color.yellow : Color.white;
             USGUIUtilities.DrawColoredLabel(data.CollisionEnabled ? "ON" : "OFF", colColor, 35);
@@ -300,6 +315,7 @@ namespace UnityScanner.Categories.ParticleSystemAnalysis
                     GUILayout.Label("Fix: Disable collision module or enable send collision messages if gameplay requires it.", EditorStyles.wordWrappedMiniLabel);
                     GUI.color = prev;
                 }
+                USGUIUtilities.DrawCustomWarnings(data);
                 EditorGUILayout.EndVertical();
                 EditorGUI.indentLevel--;
             }

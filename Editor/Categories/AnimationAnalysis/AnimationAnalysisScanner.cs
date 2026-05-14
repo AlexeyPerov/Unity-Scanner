@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,14 +12,15 @@ namespace UnityScanner.Categories.AnimationAnalysis
 {
     public static class AnimationAnalysisScanner
     {
-        public static void ScanAll(
+        public static IEnumerator ScanAll(
             AnimationAnalysisSettings settings,
             List<AnimatorData> animators,
             List<AnimationClipData> clips,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            int yieldInterval)
         {
-            ScanAnimators(settings, animators, issueSink);
-            ScanClips(settings, clips, issueSink);
+            yield return ScanAnimators(settings, animators, issueSink, yieldInterval);
+            yield return ScanClips(settings, clips, issueSink, yieldInterval);
 
             if (settings.DetectDuplicateClips)
                 DetectDuplicateClips(clips);
@@ -26,10 +28,11 @@ namespace UnityScanner.Categories.AnimationAnalysis
             GC.Collect();
         }
 
-        private static void ScanAnimators(
+        private static IEnumerator ScanAnimators(
             AnimationAnalysisSettings settings,
             List<AnimatorData> animators,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            int yieldInterval)
         {
             var animatorGuids = AssetDatabase.FindAssets("t:RuntimeAnimatorController");
             var total = animatorGuids.Length;
@@ -38,6 +41,13 @@ namespace UnityScanner.Categories.AnimationAnalysis
             {
                 if (i % 30 == 0)
                     issueSink.ReportProgress((float)i / total * 0.6f, "Scanning animator controllers...");
+
+                if (yieldInterval > 0 && i > 0 && i % yieldInterval == 0)
+                {
+                    System.GC.Collect();
+                    yield return 0.05f;
+                    System.GC.Collect();
+                }
 
                 var controllerPath = AssetDatabase.GUIDToAssetPath(animatorGuids[i]);
                 if (!string.IsNullOrEmpty(settings.PathFilter) && !controllerPath.Contains(settings.PathFilter))
@@ -294,10 +304,11 @@ namespace UnityScanner.Categories.AnimationAnalysis
                 data.TrySetWarningLevel(1);
         }
 
-        private static void ScanClips(
+        private static IEnumerator ScanClips(
             AnimationAnalysisSettings settings,
             List<AnimationClipData> clips,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            int yieldInterval)
         {
             var clipGuids = AssetDatabase.FindAssets("t:AnimationClip");
             var total = clipGuids.Length;
@@ -306,6 +317,13 @@ namespace UnityScanner.Categories.AnimationAnalysis
             {
                 if (i % 100 == 0)
                     issueSink.ReportProgress(0.6f + (float)i / total * 0.3f, "Scanning animation clips...");
+
+                if (yieldInterval > 0 && i > 0 && i % yieldInterval == 0)
+                {
+                    System.GC.Collect();
+                    yield return 0.05f;
+                    System.GC.Collect();
+                }
 
                 var clipPath = AssetDatabase.GUIDToAssetPath(clipGuids[i]);
                 if (!string.IsNullOrEmpty(settings.PathFilter) && !clipPath.Contains(settings.PathFilter))

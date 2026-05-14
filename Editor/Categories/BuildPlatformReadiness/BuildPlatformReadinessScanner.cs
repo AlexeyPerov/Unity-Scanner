@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,20 +13,27 @@ namespace UnityScanner.Categories.BuildPlatformReadiness
 {
     public static class BuildPlatformReadinessScanner
     {
-        public static void ScanAll(
+        public static IEnumerator ScanAll(
             BuildPlatformReadinessSettings settings,
             PlatformProfile profile,
             List<ImportPolicyViolation> violations,
             List<PlatformIncompatibility> incompatibilities,
             List<StrippingRisk> strippingRisks,
             List<StartupBudgetStatus> budgetStatuses,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            int yieldInterval)
         {
             if (settings.CheckImportPolicies)
-                ScanImportPolicies(profile, violations, issueSink);
+            {
+                var e1 = ScanImportPolicies(profile, violations, issueSink, yieldInterval);
+                while (e1.MoveNext()) yield return e1.Current;
+            }
 
             if (settings.CheckPlatformCompatibility)
-                ScanPlatformCompatibility(profile, incompatibilities, issueSink);
+            {
+                var e2 = ScanPlatformCompatibility(profile, incompatibilities, issueSink, yieldInterval);
+                while (e2.MoveNext()) yield return e2.Current;
+            }
 
             if (settings.CheckStrippingRisk)
                 ScanStrippingRisks(strippingRisks, issueSink);
@@ -36,12 +44,13 @@ namespace UnityScanner.Categories.BuildPlatformReadiness
             GC.Collect();
         }
 
-        private static void ScanImportPolicies(
+        private static IEnumerator ScanImportPolicies(
             PlatformProfile profile,
             List<ImportPolicyViolation> violations,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            int yieldInterval)
         {
-            if (profile == null) return;
+            if (profile == null) yield break;
 
             issueSink.ReportProgress(0f, "Checking texture import policies...");
             var textureGuids = AssetDatabase.FindAssets("t:Texture2D");
@@ -49,6 +58,13 @@ namespace UnityScanner.Categories.BuildPlatformReadiness
 
             for (var i = 0; i < textureGuids.Length; i++)
             {
+                if (yieldInterval > 0 && i > 0 && i % yieldInterval == 0)
+                {
+                    System.GC.Collect();
+                    yield return 0.05f;
+                    System.GC.Collect();
+                }
+
                 if (i % 200 == 0)
                     issueSink.ReportProgress((float)i / total * 0.3f, "Checking texture imports...");
 
@@ -103,6 +119,13 @@ namespace UnityScanner.Categories.BuildPlatformReadiness
             var audioGuids = AssetDatabase.FindAssets("t:AudioClip");
             for (var i = 0; i < audioGuids.Length; i++)
             {
+                if (yieldInterval > 0 && i > 0 && i % yieldInterval == 0)
+                {
+                    System.GC.Collect();
+                    yield return 0.05f;
+                    System.GC.Collect();
+                }
+
                 var path = AssetDatabase.GUIDToAssetPath(audioGuids[i]);
                 var importer = AssetImporter.GetAtPath(path) as AudioImporter;
                 if (importer == null) continue;
@@ -152,18 +175,26 @@ namespace UnityScanner.Categories.BuildPlatformReadiness
             }
         }
 
-        private static void ScanPlatformCompatibility(
+        private static IEnumerator ScanPlatformCompatibility(
             PlatformProfile profile,
             List<PlatformIncompatibility> incompatibilities,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            int yieldInterval)
         {
-            if (profile == null) return;
+            if (profile == null) yield break;
 
             issueSink.ReportProgress(0.4f, "Checking mesh compatibility...");
             var meshGuids = AssetDatabase.FindAssets("t:Mesh");
-            foreach (var guid in meshGuids)
+            for (var i = 0; i < meshGuids.Length; i++)
             {
-                var path = AssetDatabase.GUIDToAssetPath(guid);
+                if (yieldInterval > 0 && i > 0 && i % yieldInterval == 0)
+                {
+                    System.GC.Collect();
+                    yield return 0.05f;
+                    System.GC.Collect();
+                }
+
+                var path = AssetDatabase.GUIDToAssetPath(meshGuids[i]);
                 var mesh = AssetDatabase.LoadMainAssetAtPath(path) as Mesh;
                 if (mesh == null) continue;
 

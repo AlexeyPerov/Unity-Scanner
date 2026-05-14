@@ -4,6 +4,7 @@ using System.Linq;
 using UnityScanner.Core.Categories;
 using UnityScanner.Core.Issues;
 using UnityScanner.Core.Settings;
+using UnityEditor;
 
 namespace UnityScanner.Categories.UICanvasAnalysis
 {
@@ -29,8 +30,15 @@ namespace UnityScanner.Categories.UICanvasAnalysis
             issueSink.ReportProgress(0f, "Scanning UI/Canvas...");
             yield return null;
 
+            var yieldInterval = USCoroutineHelper.ComputeYieldInterval(
+                AssetDatabase.GetAllAssetPaths().Length,
+                context?.Settings?.YieldAssetThreshold ?? 5000,
+                context?.Settings?.YieldIntervalDivisor ?? 10);
+
             var results = new List<CanvasData>();
-            UICanvasAnalysisScanner.ScanAll(_settings, profile, results, issueSink);
+            var enumerator = UICanvasAnalysisScanner.ScanAll(_settings, profile, results, issueSink, yieldInterval);
+            while (enumerator.MoveNext())
+                yield return enumerator.Current;
 
             issueSink.ReportProgress(0.95f, "Mapping issues...");
             yield return null;

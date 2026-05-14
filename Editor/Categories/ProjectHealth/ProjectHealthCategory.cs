@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityScanner.Core.Categories;
 using UnityScanner.Core.Issues;
+using UnityEditor;
 
 namespace UnityScanner.Categories.ProjectHealth
 {
@@ -26,8 +27,15 @@ namespace UnityScanner.Categories.ProjectHealth
             issueSink.ReportProgress(0f, "Scanning project health...");
             yield return null;
 
+            var yieldInterval = USCoroutineHelper.ComputeYieldInterval(
+                AssetDatabase.GetAllAssetPaths().Length,
+                context?.Settings?.YieldAssetThreshold ?? 5000,
+                context?.Settings?.YieldIntervalDivisor ?? 10);
+
             var results = new List<ProjectHealthEntry>();
-            ProjectHealthScanner.ScanAll(_settings, results, issueSink);
+            var enumerator = ProjectHealthScanner.ScanAll(_settings, results, issueSink, yieldInterval);
+            while (enumerator.MoveNext())
+                yield return enumerator.Current;
 
             issueSink.ReportProgress(0.95f, "Mapping issues...");
             yield return null;

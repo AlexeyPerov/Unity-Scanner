@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -19,21 +20,30 @@ namespace UnityScanner.Categories.Dependencies
             @"m_AssetGUID:\s*([0-9a-fA-F]{32})",
             RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
-        public static void FillReverseDependenciesMap(
+        public static IEnumerator FillReverseDependenciesMap(
             bool scanAssetReferences,
             bool binarySerialization,
             bool scanTerrainDataReferences,
             IUnityScannerIssueSink issueSink,
-            out Dictionary<string, List<string>> reverseDependencies)
+            Dictionary<string, List<string>> reverseDependencies,
+            int yieldInterval)
         {
             var assetPaths = AssetDatabase.GetAllAssetPaths().ToList();
-            reverseDependencies = assetPaths.ToDictionary(p => p, _ => new List<string>());
+            foreach (var p in assetPaths)
+                reverseDependencies[p] = new List<string>();
 
             var totalAssets = assetPaths.Count;
             var progressInterval = Math.Max(1, totalAssets / 100);
 
             for (var i = 0; i < totalAssets; i++)
             {
+                if (yieldInterval > 0 && i > 0 && i % yieldInterval == 0)
+                {
+                    System.GC.Collect();
+                    yield return 0.05f;
+                    System.GC.Collect();
+                }
+
                 if (i % progressInterval == 0)
                 {
                     issueSink.ReportProgress((float)i / totalAssets, "Building dependency map");
@@ -56,9 +66,11 @@ namespace UnityScanner.Categories.Dependencies
                 ScanTerrainDataReferences(reverseDependencies);
         }
 
-        public static List<DependenciesAssetData> ScanUnreferencedAssets(
+        public static IEnumerator ScanUnreferencedAssets(
             DependenciesSettings settings,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            List<DependenciesAssetData> assets,
+            int yieldInterval)
         {
             USAddressablesReflection.ClearCache();
 
@@ -75,14 +87,15 @@ namespace UnityScanner.Categories.Dependencies
             var compiledPatterns = ignoreManager.CompiledPatterns;
             var iconChecker = new IconPathCache();
 
-            FillReverseDependenciesMap(
+            var map = new Dictionary<string, List<string>>();
+            var depEnum = FillReverseDependenciesMap(
                 settings.ScanForAssetReferences,
                 EditorSettings.serializationMode != SerializationMode.ForceText,
                 settings.ScanForTerrainDataReferences,
                 issueSink,
-                out var map);
-
-            var assets = new List<DependenciesAssetData>();
+                map,
+                yieldInterval);
+            while (depEnum.MoveNext()) yield return depEnum.Current;
 
             var totalAssets = map.Count;
             var progressInterval = Math.Max(1, totalAssets / 100);
@@ -90,6 +103,13 @@ namespace UnityScanner.Categories.Dependencies
 
             foreach (var mapElement in map)
             {
+                if (yieldInterval > 0 && count > 0 && count % yieldInterval == 0)
+                {
+                    System.GC.Collect();
+                    yield return 0.05f;
+                    System.GC.Collect();
+                }
+
                 if (count % progressInterval == 0)
                     issueSink.ReportProgress((float)count / totalAssets, "Analyzing assets");
 
@@ -133,7 +153,6 @@ namespace UnityScanner.Categories.Dependencies
                 }
             }
 
-            return assets;
         }
 
         public static Dictionary<UnityEngine.Object, List<string>> GetReferencesForSelectedAssets(
@@ -142,7 +161,8 @@ namespace UnityScanner.Categories.Dependencies
             bool binarySerialization)
         {
             var reverseDeps = new Dictionary<string, List<string>>();
-            FillReverseDependenciesMap(scanAssetReferences, binarySerialization, false, new UnityScannerIssueSink(), out reverseDeps);
+            var refEnum = FillReverseDependenciesMap(scanAssetReferences, binarySerialization, false, new UnityScannerIssueSink(), reverseDeps, 0);
+            while (refEnum.MoveNext()) { }
 
             var results = new Dictionary<UnityEngine.Object, List<string>>();
 

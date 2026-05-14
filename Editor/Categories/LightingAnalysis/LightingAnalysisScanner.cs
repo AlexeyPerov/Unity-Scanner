@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityScanner.Core.Issues;
@@ -13,17 +14,25 @@ namespace UnityScanner.Categories.LightingAnalysis
 {
     public static class LightingAnalysisScanner
     {
-        public static void ScanAll(
+        public static IEnumerator ScanAll(
             LightingAnalysisSettings settings,
             PlatformProfile profile,
             List<SceneLightingData> results,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            int yieldInterval)
         {
             var sceneGuids = AssetDatabase.FindAssets("t:Scene");
             var total = sceneGuids.Length;
 
             for (var i = 0; i < sceneGuids.Length; i++)
             {
+                if (yieldInterval > 0 && i > 0 && i % yieldInterval == 0)
+                {
+                    System.GC.Collect();
+                    yield return 0.05f;
+                    System.GC.Collect();
+                }
+
                 if (i % 5 == 0)
                     issueSink.ReportProgress((float)i / total, "Scanning scenes for lighting...");
 
@@ -49,7 +58,10 @@ namespace UnityScanner.Categories.LightingAnalysis
             }
 
             if (settings.CheckEmissiveNoGI)
-                ScanEmissiveMaterials(settings, profile, results, issueSink);
+            {
+                var e = ScanEmissiveMaterials(settings, profile, results, issueSink, yieldInterval);
+                while (e.MoveNext()) yield return e.Current;
+            }
 
             System.GC.Collect();
         }
@@ -139,18 +151,26 @@ namespace UnityScanner.Categories.LightingAnalysis
             return data;
         }
 
-        private static void ScanEmissiveMaterials(
+        private static IEnumerator ScanEmissiveMaterials(
             LightingAnalysisSettings settings,
             PlatformProfile profile,
             List<SceneLightingData> results,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            int yieldInterval)
         {
             issueSink.ReportProgress(0.9f, "Scanning emissive materials...");
 
             var matGuids = AssetDatabase.FindAssets("t:Material");
-            foreach (var guid in matGuids)
+            for (var i = 0; i < matGuids.Length; i++)
             {
-                var path = AssetDatabase.GUIDToAssetPath(guid);
+                if (yieldInterval > 0 && i > 0 && i % yieldInterval == 0)
+                {
+                    System.GC.Collect();
+                    yield return 0.05f;
+                    System.GC.Collect();
+                }
+
+                var path = AssetDatabase.GUIDToAssetPath(matGuids[i]);
                 var mat = AssetDatabase.LoadMainAssetAtPath(path) as Material;
                 if (mat == null) continue;
 

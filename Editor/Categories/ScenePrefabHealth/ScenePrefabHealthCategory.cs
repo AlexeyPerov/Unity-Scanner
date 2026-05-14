@@ -4,6 +4,7 @@ using System.Linq;
 using UnityScanner.Core.Categories;
 using UnityScanner.Core.Issues;
 using UnityScanner.Core.Settings;
+using UnityEditor;
 
 namespace UnityScanner.Categories.ScenePrefabHealth
 {
@@ -32,10 +33,17 @@ namespace UnityScanner.Categories.ScenePrefabHealth
             issueSink.ReportProgress(0f, "Scanning scenes and prefabs...");
             yield return null;
 
+            var yieldInterval = USCoroutineHelper.ComputeYieldInterval(
+                AssetDatabase.GetAllAssetPaths().Length,
+                context?.Settings?.YieldAssetThreshold ?? 5000,
+                context?.Settings?.YieldIntervalDivisor ?? 10);
+
             var scenes = new List<SceneData>();
             var prefabs = new List<PrefabData>();
 
-            ScenePrefabHealthScanner.ScanAll(settings, profile, scenes, prefabs, issueSink);
+            var enumerator = ScenePrefabHealthScanner.ScanAll(settings, profile, scenes, prefabs, issueSink, yieldInterval);
+            while (enumerator.MoveNext())
+                yield return enumerator.Current;
 
             issueSink.ReportProgress(0.95f, "Mapping issues...");
             yield return null;

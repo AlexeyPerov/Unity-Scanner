@@ -4,6 +4,7 @@ using System.Linq;
 using UnityScanner.Core.Categories;
 using UnityScanner.Core.Issues;
 using UnityScanner.Core.Settings;
+using UnityEditor;
 
 namespace UnityScanner.Categories.ShaderAnalysis
 {
@@ -40,10 +41,17 @@ namespace UnityScanner.Categories.ShaderAnalysis
             issueSink.ReportProgress(0f, "Scanning shaders and materials...");
             yield return null;
 
+            var yieldInterval = USCoroutineHelper.ComputeYieldInterval(
+                AssetDatabase.GetAllAssetPaths().Length,
+                context?.Settings?.YieldAssetThreshold ?? 5000,
+                context?.Settings?.YieldIntervalDivisor ?? 10);
+
             var shaders = new List<ShaderData>();
             var materials = new List<MaterialData>();
 
-            ShaderAnalysisScanner.ScanAll(settings, profile, shaders, materials, issueSink);
+            var enumerator = ShaderAnalysisScanner.ScanAll(settings, profile, shaders, materials, issueSink, yieldInterval);
+            while (enumerator.MoveNext())
+                yield return enumerator.Current;
 
             issueSink.ReportProgress(0.9f, "Mapping issues...");
             yield return null;

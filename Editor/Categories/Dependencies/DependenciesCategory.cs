@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityScanner.Core.Categories;
 using UnityScanner.Core.Issues;
+using UnityEditor;
 
 namespace UnityScanner.Categories.Dependencies
 {
@@ -28,7 +29,15 @@ namespace UnityScanner.Categories.Dependencies
             issueSink.ReportProgress(0f, "Scanning unreferenced assets...");
             yield return null;
 
-            LastAssets = DependenciesScanner.ScanUnreferencedAssets(settings, issueSink);
+            var yieldInterval = USCoroutineHelper.ComputeYieldInterval(
+                AssetDatabase.GetAllAssetPaths().Length,
+                context?.Settings?.YieldAssetThreshold ?? 5000,
+                context?.Settings?.YieldIntervalDivisor ?? 10);
+
+            LastAssets = new List<DependenciesAssetData>();
+            var enumerator = DependenciesScanner.ScanUnreferencedAssets(settings, issueSink, LastAssets, yieldInterval);
+            while (enumerator.MoveNext())
+                yield return enumerator.Current;
 
             issueSink.ReportProgress(0.8f, "Mapping issues...");
             yield return null;

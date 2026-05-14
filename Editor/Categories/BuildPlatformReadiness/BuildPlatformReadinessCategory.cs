@@ -4,6 +4,7 @@ using System.Linq;
 using UnityScanner.Core.Categories;
 using UnityScanner.Core.Issues;
 using UnityScanner.Core.Settings;
+using UnityEditor;
 
 namespace UnityScanner.Categories.BuildPlatformReadiness
 {
@@ -33,13 +34,20 @@ namespace UnityScanner.Categories.BuildPlatformReadiness
             issueSink.ReportProgress(0f, "Scanning build/platform readiness...");
             yield return null;
 
+            var yieldInterval = USCoroutineHelper.ComputeYieldInterval(
+                AssetDatabase.GetAllAssetPaths().Length,
+                context?.Settings?.YieldAssetThreshold ?? 5000,
+                context?.Settings?.YieldIntervalDivisor ?? 10);
+
             var violations = new List<ImportPolicyViolation>();
             var incompatibilities = new List<PlatformIncompatibility>();
             var strippingRisks = new List<StrippingRisk>();
             var budgetStatuses = new List<StartupBudgetStatus>();
 
-            BuildPlatformReadinessScanner.ScanAll(
-                settings, profile, violations, incompatibilities, strippingRisks, budgetStatuses, issueSink);
+            var enumerator = BuildPlatformReadinessScanner.ScanAll(
+                settings, profile, violations, incompatibilities, strippingRisks, budgetStatuses, issueSink, yieldInterval);
+            while (enumerator.MoveNext())
+                yield return enumerator.Current;
 
             issueSink.ReportProgress(0.95f, "Mapping issues...");
             yield return null;

@@ -25,6 +25,9 @@ namespace UnityScanner.Categories.ProjectHealth
                     _ => ("project_unknown", UnityScannerIssueSeverity.Info)
                 };
 
+                if (severity == UnityScannerIssueSeverity.Error) entry.AddError(entry.Detail);
+                else if (severity == UnityScannerIssueSeverity.Warning) entry.AddWarning(entry.Detail);
+                else entry.AddInfo(entry.Detail);
                 issues.Add(MakeIssue(code, entry.Detail, severity, entry.Path,
                     "IssueType", entry.IssueType.ToString(),
                     "FileSizeBytes", entry.FileSizeBytes));

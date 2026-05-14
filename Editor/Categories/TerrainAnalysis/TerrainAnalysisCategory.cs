@@ -4,6 +4,7 @@ using System.Linq;
 using UnityScanner.Core.Categories;
 using UnityScanner.Core.Issues;
 using UnityScanner.Core.Settings;
+using UnityEditor;
 
 namespace UnityScanner.Categories.TerrainAnalysis
 {
@@ -31,8 +32,15 @@ namespace UnityScanner.Categories.TerrainAnalysis
             issueSink.ReportProgress(0f, "Scanning terrains...");
             yield return null;
 
+            var yieldInterval = USCoroutineHelper.ComputeYieldInterval(
+                AssetDatabase.GetAllAssetPaths().Length,
+                context?.Settings?.YieldAssetThreshold ?? 5000,
+                context?.Settings?.YieldIntervalDivisor ?? 10);
+
             var terrains = new List<TerrainDataInfo>();
-            TerrainAnalysisScanner.ScanAll(settings, profile, terrains, issueSink);
+            var enumerator = TerrainAnalysisScanner.ScanAll(settings, profile, terrains, issueSink, yieldInterval);
+            while (enumerator.MoveNext())
+                yield return enumerator.Current;
 
             issueSink.ReportProgress(0.9f, "Mapping issues...");
             yield return null;

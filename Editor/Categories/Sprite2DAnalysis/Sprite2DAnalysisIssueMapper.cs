@@ -24,6 +24,10 @@ namespace UnityScanner.Categories.Sprite2DAnalysis
                 {
                     if (atlas.AtlasPixelArea > 0 && atlas.UnusedRatio > threshold)
                     {
+                        atlas.AddWarning("Atlas '" + atlas.AssetPath + "' has " + (atlas.UnusedRatio * 100).ToString("F1") + "% unused space (threshold: " + (threshold * 100).ToString("F1") + "%). " +
+                            "Total atlas area: " + atlas.AtlasPixelArea.ToString("N0") + " px, used: " + atlas.UsedPixelArea.ToString("N0") + " px. " +
+                            "Excessive wasted space increases runtime memory and texture upload cost. " +
+                            "Consider adding more sprites to this atlas, consolidating small atlases, or adjusting sprite padding.");
                         issues.Add(MakeIssue("sprite_atlas_low_efficiency",
                             "Atlas '" + atlas.AssetPath + "' has " + (atlas.UnusedRatio * 100).ToString("F1") + "% unused space (threshold: " + (threshold * 100).ToString("F1") + "%). " +
                             "Total atlas area: " + atlas.AtlasPixelArea.ToString("N0") + " px, used: " + atlas.UsedPixelArea.ToString("N0") + " px. " +
@@ -43,7 +47,7 @@ namespace UnityScanner.Categories.Sprite2DAnalysis
                 var looseSprites = spriteResults.Where(s => !s.IsInAtlas).ToList();
                 foreach (var sprite in looseSprites)
                 {
-                    if (sprite.PixelArea > 64 * 64)
+                    if (sprite.PixelArea > settings.MinNotPackedSpriteSize * settings.MinNotPackedSpriteSize)
                     {
                         issues.Add(MakeIssue("sprite_not_packed",
                             "Sprite '" + sprite.SpriteName + "' (" + sprite.Width + "x" + sprite.Height + ") is not included in any Sprite Atlas. " +
@@ -60,10 +64,10 @@ namespace UnityScanner.Categories.Sprite2DAnalysis
             {
                 foreach (var sprite in spriteResults)
                 {
-                    if (sprite.PolygonVertexCount > 50)
+                    if (sprite.PolygonVertexCount > settings.MaxPolygonVertexCount)
                     {
                         issues.Add(MakeIssue("sprite_polygon_vertices_excessive",
-                            "Sprite '" + sprite.SpriteName + "' has " + sprite.PolygonVertexCount + " polygon vertices (recommended max: ~50). " +
+                            "Sprite '" + sprite.SpriteName + "' has " + sprite.PolygonVertexCount + " polygon vertices (threshold: " + settings.MaxPolygonVertexCount + "). " +
                             "High vertex counts increase CPU time for collision detection and physics simulation when used with PolygonCollider2D. " +
                             "Consider simplifying the sprite outline or reducing the detail level in Sprite Editor.",
                             UnityScannerIssueSeverity.Info, sprite.AssetPath,
@@ -101,7 +105,7 @@ namespace UnityScanner.Categories.Sprite2DAnalysis
             {
                 foreach (var sprite in spriteResults)
                 {
-                    if (sprite.MeshType == "FullRect" && sprite.PixelArea > 32 * 32)
+                    if (sprite.MeshType == "FullRect" && sprite.PixelArea > settings.MinFullRectSpriteSize * settings.MinFullRectSpriteSize)
                     {
                         issues.Add(MakeIssue("sprite_full_rect_unnecessary",
                             "Sprite '" + sprite.SpriteName + "' uses FullRect mesh type. Tight mesh can reduce wasted pixel space, especially for non-rectangular sprites. " +

@@ -24,6 +24,7 @@ namespace UnityScanner.Categories.ScenePrefabHealth
                 {
                     foreach (var br in scene.BrokenReferences)
                     {
+                        scene.AddError("Scene '" + scene.Name + "': " + br);
                         issues.Add(MakeIssue("broken_reference",
                             "Scene '" + scene.Name + "': " + br,
                             UnityScannerIssueSeverity.Error, scene.Path));
@@ -32,6 +33,7 @@ namespace UnityScanner.Categories.ScenePrefabHealth
 
                 if (settings.DetectHighRiskBootstrap && scene.IsBootstrapScene && scene.TotalObjectCount > maxObjects / 2)
                 {
+                    scene.AddWarning("Bootstrap scene '" + scene.Name + "' has " + scene.TotalObjectCount + " objects (budget: " + (maxObjects / 2) + ").");
                     issues.Add(MakeIssue("high_risk_bootstrap",
                         "Bootstrap scene '" + scene.Name + "' has " + scene.TotalObjectCount + " objects (budget: " + (maxObjects / 2) + ").",
                         UnityScannerIssueSeverity.Warning, scene.Path));
@@ -39,6 +41,7 @@ namespace UnityScanner.Categories.ScenePrefabHealth
 
                 if (settings.DetectHierarchyHotspots && scene.TotalObjectCount > maxObjects)
                 {
+                    scene.AddWarning("Scene '" + scene.Name + "' has " + scene.TotalObjectCount + " objects (budget: " + maxObjects + ").");
                     issues.Add(MakeIssue("scene_object_count",
                         "Scene '" + scene.Name + "' has " + scene.TotalObjectCount + " objects (budget: " + maxObjects + ").",
                         UnityScannerIssueSeverity.Warning, scene.Path));
@@ -48,6 +51,7 @@ namespace UnityScanner.Categories.ScenePrefabHealth
                 {
                     foreach (var hotspot in scene.HotspotPaths)
                     {
+                        scene.AddWarning("Scene '" + scene.Name + "' hotspot: " + hotspot);
                         issues.Add(MakeIssue("component_hotspot",
                             "Scene '" + scene.Name + "' hotspot: " + hotspot,
                             UnityScannerIssueSeverity.Warning, scene.Path));
@@ -73,6 +77,7 @@ namespace UnityScanner.Categories.ScenePrefabHealth
             {
                 if (settings.DetectDeepNesting && prefab.NestingDepth > maxNesting)
                 {
+                    prefab.AddWarning("Prefab '" + prefab.Name + "' has nesting depth " + prefab.NestingDepth + " (max: " + maxNesting + ").");
                     issues.Add(MakeIssue("deep_nesting",
                         "Prefab '" + prefab.Name + "' has nesting depth " + prefab.NestingDepth + " (max: " + maxNesting + ").",
                         UnityScannerIssueSeverity.Warning, prefab.Path));
@@ -80,6 +85,7 @@ namespace UnityScanner.Categories.ScenePrefabHealth
 
                 if (settings.DetectOverrideExplosion && prefab.OverrideCount > maxOverrides)
                 {
+                    prefab.AddWarning("Prefab '" + prefab.Name + "' has " + prefab.OverrideCount + " overrides (max: " + maxOverrides + ").");
                     issues.Add(MakeIssue("override_explosion",
                         "Prefab '" + prefab.Name + "' has " + prefab.OverrideCount + " overrides (max: " + maxOverrides + ").",
                         UnityScannerIssueSeverity.Warning, prefab.Path));

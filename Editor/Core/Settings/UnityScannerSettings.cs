@@ -10,6 +10,9 @@ namespace UnityScanner.Core.Settings
         public string BuildLayoutPath = "";
         public bool CacheAutoValidateOnLoad = true;
 
+        public int YieldAssetThreshold = 5000;
+        public int YieldIntervalDivisor = 10;
+
         public string ActivePlatformProfileId = PlatformProfilePresets.Mobile;
         private PlatformProfile _activeProfile;
 

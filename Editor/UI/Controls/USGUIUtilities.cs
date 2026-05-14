@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
@@ -163,6 +164,40 @@ namespace UnityScanner.UI.Controls
                 return new Color(0.5f, 0.8f, 1f);
 
             return Color.white;
+        }
+
+        public static void DrawCustomWarnings(USItemDataBase item)
+        {
+            if (item == null) return;
+
+            var hasNew = item.Errors.Count > 0 || item.Warnings.Count > 0 ||
+                         item.Infos.Count > 0 || item.VerboseMessages.Count > 0;
+
+            if (hasNew)
+            {
+                DrawIssueSection(item.Errors, "Errors:", new Color(1f, 0.4f, 0.4f));
+                DrawIssueSection(item.Warnings, "Warnings:", Color.yellow);
+                DrawIssueSection(item.Infos, "Info:", Color.cyan);
+                DrawIssueSection(item.VerboseMessages, "Details:", Color.white);
+            }
+            else if (item.CustomWarnings != null && item.CustomWarnings.Count > 0)
+            {
+                DrawIssueSection(item.CustomWarnings, "Warnings:", Color.yellow);
+            }
+        }
+
+        private static void DrawIssueSection(List<string> messages, string header, Color color)
+        {
+            if (messages == null || messages.Count == 0) return;
+            GUILayout.Space(3);
+            var prev = GUI.color;
+            GUI.color = color;
+            GUILayout.Label(header, EditorStyles.boldLabel);
+            GUI.color = prev;
+            EditorGUI.indentLevel++;
+            foreach (var w in messages)
+                DrawColoredLabel("- " + w, color);
+            EditorGUI.indentLevel--;
         }
     }
 }

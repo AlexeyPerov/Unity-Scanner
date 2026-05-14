@@ -28,6 +28,7 @@ namespace UnityScanner.Categories.FontTextAnalysis
 
                 if (settings.DetectAtlasGrowth && font.IsDynamic)
                 {
+                    font.AddWarning($"TMP font '{font.Name}' is dynamic and atlas may grow at runtime ({font.AtlasWidth}x{font.AtlasHeight}).");
                     issues.Add(MakeIssue(CodeAtlasGrowthRisk,
                         $"TMP font '{font.Name}' is dynamic and atlas may grow at runtime ({font.AtlasWidth}x{font.AtlasHeight}).",
                         UnityScannerIssueSeverity.Warning, font.Path,
@@ -37,6 +38,7 @@ namespace UnityScanner.Categories.FontTextAnalysis
 
                 if (settings.DetectOversizedAtlases && (font.AtlasWidth > maxAtlas || font.AtlasHeight > maxAtlas))
                 {
+                    font.AddWarning($"TMP font '{font.Name}' atlas ({font.AtlasWidth}x{font.AtlasHeight}) exceeds budget ({maxAtlas}).");
                     issues.Add(MakeIssue(CodeOversizedAtlas,
                         $"TMP font '{font.Name}' atlas ({font.AtlasWidth}x{font.AtlasHeight}) exceeds budget ({maxAtlas}).",
                         UnityScannerIssueSeverity.Warning, font.Path,
@@ -47,6 +49,7 @@ namespace UnityScanner.Categories.FontTextAnalysis
 
                 if (settings.DetectDeepFallbackChains && font.FallbackChainDepth > maxDepth)
                 {
+                    font.AddWarning($"TMP font '{font.Name}' fallback chain depth ({font.FallbackChainDepth}) exceeds limit ({maxDepth}). Chain: {string.Join(" -> ", font.FallbackChainNames)}.");
                     issues.Add(MakeIssue(CodeDeepFallbackChain,
                         $"TMP font '{font.Name}' fallback chain depth ({font.FallbackChainDepth}) exceeds limit ({maxDepth}). Chain: {string.Join(" -> ", font.FallbackChainNames)}.",
                         UnityScannerIssueSeverity.Warning, font.Path,
@@ -61,6 +64,7 @@ namespace UnityScanner.Categories.FontTextAnalysis
                 foreach (var group in duplicates)
                 {
                     var names = group.Fonts.Select(f => f.Name).Take(5).ToList();
+                    group.Fonts[0].AddInfo($"{group.Fonts.Count} fonts share identical fallback chains: {string.Join(", ", names)}. These can be consolidated.");
                     issues.Add(MakeIssue(CodeDuplicateFallbackChains,
                         $"{group.Fonts.Count} fonts share identical fallback chains: {string.Join(", ", names)}. These can be consolidated.",
                         UnityScannerIssueSeverity.Info, group.Fonts[0].Path,

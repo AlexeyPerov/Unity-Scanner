@@ -4,6 +4,7 @@ using System.Linq;
 using UnityScanner.Core.Categories;
 using UnityScanner.Core.Issues;
 using UnityScanner.Core.Settings;
+using UnityEditor;
 
 namespace UnityScanner.Categories.AudioAnalysis
 {
@@ -31,8 +32,15 @@ namespace UnityScanner.Categories.AudioAnalysis
             issueSink.ReportProgress(0f, "Scanning audio clips...");
             yield return null;
 
+            var yieldInterval = USCoroutineHelper.ComputeYieldInterval(
+                AssetDatabase.GetAllAssetPaths().Length,
+                context?.Settings?.YieldAssetThreshold ?? 5000,
+                context?.Settings?.YieldIntervalDivisor ?? 10);
+
             var clips = new List<AudioClipData>();
-            AudioAnalysisScanner.ScanAll(settings, profile, clips, issueSink);
+            var enumerator = AudioAnalysisScanner.ScanAll(settings, profile, clips, issueSink, yieldInterval);
+            while (enumerator.MoveNext())
+                yield return enumerator.Current;
 
             issueSink.ReportProgress(0.9f, "Mapping issues...");
             yield return null;

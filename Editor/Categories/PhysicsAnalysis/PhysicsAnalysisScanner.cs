@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityScanner.Core.Issues;
@@ -10,22 +11,25 @@ namespace UnityScanner.Categories.PhysicsAnalysis
 {
     public static class PhysicsAnalysisScanner
     {
-        public static void ScanAll(
+        public static IEnumerator ScanAll(
             PhysicsAnalysisSettings settings,
             PlatformProfile profile,
             List<ScenePhysicsData> results,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            int yieldInterval)
         {
-            if (profile == null) return;
+            if (profile == null) yield break;
 
-            ScanScenes(settings, profile, results, issueSink);
+            var e = ScanScenes(settings, profile, results, issueSink, yieldInterval);
+            while (e.MoveNext()) yield return e.Current;
         }
 
-        private static void ScanScenes(
+        private static IEnumerator ScanScenes(
             PhysicsAnalysisSettings settings,
             PlatformProfile profile,
             List<ScenePhysicsData> results,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            int yieldInterval)
         {
             issueSink.ReportProgress(0f, "Scanning scenes for physics...");
 
@@ -34,6 +38,13 @@ namespace UnityScanner.Categories.PhysicsAnalysis
 
             for (var i = 0; i < sceneGuids.Length; i++)
             {
+                if (yieldInterval > 0 && i > 0 && i % yieldInterval == 0)
+                {
+                    System.GC.Collect();
+                    yield return 0.05f;
+                    System.GC.Collect();
+                }
+
                 if (i % 50 == 0)
                     issueSink.ReportProgress((float)i / total, "Scanning scenes for physics...");
 

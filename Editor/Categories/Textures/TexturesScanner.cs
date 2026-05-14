@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -31,15 +32,15 @@ namespace UnityScanner.Categories.Textures
         public const string DimensionsFallbackIssue =
             "Texture is neither POT nor multiple of 4: possible compression issue";
 
-        public static (List<AtlasData> atlases, List<TextureData> textures) ScanAll(
+        public static IEnumerator ScanAll(
             TexturesSettings settings,
             USLiteBuildLayoutProvider buildLayout,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            List<AtlasData> atlases,
+            List<TextureData> textures,
+            int yieldInterval)
         {
             USAddressablesReflection.ClearCache();
-
-            var atlases = new List<AtlasData>();
-            var textures = new List<TextureData>();
 
             var assetPaths = AssetDatabase.GetAllAssetPaths();
             var total = assetPaths.Length;
@@ -47,6 +48,13 @@ namespace UnityScanner.Categories.Textures
 
             for (var i = 0; i < assetPaths.Length; i++)
             {
+                if (yieldInterval > 0 && i > 0 && i % yieldInterval == 0)
+                {
+                    System.GC.Collect();
+                    yield return 0.05f;
+                    System.GC.Collect();
+                }
+
                 count++;
 
                 if (settings.GarbageCollectStep > 0 && count % settings.GarbageCollectStep == 0)
@@ -69,6 +77,13 @@ namespace UnityScanner.Categories.Textures
 
             for (var i = 0; i < assetPaths.Length; i++)
             {
+                if (yieldInterval > 0 && i > 0 && i % yieldInterval == 0)
+                {
+                    System.GC.Collect();
+                    yield return 0.05f;
+                    System.GC.Collect();
+                }
+
                 count++;
 
                 if (settings.GarbageCollectStep > 0 && count % settings.GarbageCollectStep == 0)
@@ -105,8 +120,6 @@ namespace UnityScanner.Categories.Textures
 
             atlases.Sort((a, b) => b.WarningLevel.CompareTo(a.WarningLevel));
             textures.Sort((a, b) => b.WarningLevel.CompareTo(a.WarningLevel));
-
-            return (atlases, textures);
         }
 
         private static string GetBundleName(USLiteBuildLayoutProvider buildLayout, string assetPath)

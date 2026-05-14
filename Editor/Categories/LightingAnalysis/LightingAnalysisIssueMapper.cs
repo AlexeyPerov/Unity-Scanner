@@ -19,6 +19,7 @@ namespace UnityScanner.Categories.LightingAnalysis
             {
                 if (settings.CheckRealtimeExceeded && data.RealtimeLightCount > profile.MaxRealtimeLightsPerScene)
                 {
+                    data.AddWarning("Scene has " + data.RealtimeLightCount + " realtime lights (max: " + profile.MaxRealtimeLightsPerScene + ").");
                     issues.Add(MakeIssue("lighting_realtime_exceeded",
                         "Scene has " + data.RealtimeLightCount + " realtime lights (max: " + profile.MaxRealtimeLightsPerScene + ").",
                         UnityScannerIssueSeverity.Warning, data.ScenePath,
@@ -32,6 +33,7 @@ namespace UnityScanner.Categories.LightingAnalysis
                         l.ShadowsEnabled && l.LightMode == "Realtime").ToList();
                     foreach (var sl in shadowLights)
                     {
+                        data.AddWarning("Realtime light '" + sl.ObjectPath + "' has shadows enabled on mobile profile.");
                         issues.Add(MakeIssue("lighting_shadows_on_mobile",
                             "Realtime light '" + sl.ObjectPath + "' has shadows enabled on mobile profile.",
                             UnityScannerIssueSeverity.Warning, data.ScenePath,
@@ -41,6 +43,7 @@ namespace UnityScanner.Categories.LightingAnalysis
 
                 if (settings.CheckLightmapOversized && data.LightmapSize > profile.MaxLightmapSize)
                 {
+                    data.AddWarning("Lightmap size " + data.LightmapSize + " exceeds threshold " + profile.MaxLightmapSize + ".");
                     issues.Add(MakeIssue("lighting_lightmap_oversized",
                         "Lightmap size " + data.LightmapSize + " exceeds threshold " + profile.MaxLightmapSize + ".",
                         UnityScannerIssueSeverity.Warning, data.ScenePath,
@@ -52,6 +55,7 @@ namespace UnityScanner.Categories.LightingAnalysis
                     (data.MixedLightCount > 0 && (data.RealtimeLightCount > 0 || data.BakedLightCount > 0)) ||
                     (data.RealtimeLightCount > 0 && data.BakedLightCount > 0 && data.MixedLightCount == 0))
                 {
+                    data.AddInfo("Inconsistent lighting modes: " + data.MixedLightCount + " Mixed, " + data.RealtimeLightCount + " Realtime, " + data.BakedLightCount + " Baked.");
                     issues.Add(MakeIssue("lighting_mode_inconsistent",
                         "Inconsistent lighting modes: " + data.MixedLightCount + " Mixed, " + data.RealtimeLightCount + " Realtime, " + data.BakedLightCount + " Baked.",
                         UnityScannerIssueSeverity.Info, data.ScenePath,
@@ -68,6 +72,7 @@ namespace UnityScanner.Categories.LightingAnalysis
                     {
                         if (data.RealtimeLightCount <= profile.MaxRealtimeLightsPerScene)
                             continue;
+                        data.AddWarning("Light '" + light.ObjectPath + "' is set to Realtime but may be intended for baking.");
                         issues.Add(MakeIssue("lighting_baked_set_to_realtime",
                             "Light '" + light.ObjectPath + "' is set to Realtime but may be intended for baking.",
                             UnityScannerIssueSeverity.Warning, data.ScenePath,
@@ -80,6 +85,7 @@ namespace UnityScanner.Categories.LightingAnalysis
                     (data.RealtimeLightCount > 0 || data.MixedLightCount > 0) &&
                     !data.HasLightProbes)
                 {
+                    data.AddWarning("Scene has " + (data.RealtimeLightCount + data.MixedLightCount) + " realtime/mixed lights but no light probes.");
                     issues.Add(MakeIssue("lighting_probe_missing",
                         "Scene has " + (data.RealtimeLightCount + data.MixedLightCount) + " realtime/mixed lights but no light probes.",
                         UnityScannerIssueSeverity.Warning, data.ScenePath));
@@ -89,6 +95,7 @@ namespace UnityScanner.Categories.LightingAnalysis
                 {
                     if (data.ReflectionProbeCount > profile.MaxReflectionProbeCount)
                     {
+                        data.AddWarning("Reflection probe count " + data.ReflectionProbeCount + " exceeds threshold " + profile.MaxReflectionProbeCount + ".");
                         issues.Add(MakeIssue("lighting_reflection_probe_exceeded",
                             "Reflection probe count " + data.ReflectionProbeCount + " exceeds threshold " + profile.MaxReflectionProbeCount + ".",
                             UnityScannerIssueSeverity.Warning, data.ScenePath,
@@ -99,6 +106,7 @@ namespace UnityScanner.Categories.LightingAnalysis
                     }
                     if (data.MaxReflectionProbeResolution > profile.MaxReflectionProbeSize)
                     {
+                        data.AddWarning("Reflection probe resolution " + data.MaxReflectionProbeResolution + " exceeds threshold " + profile.MaxReflectionProbeSize + ".");
                         issues.Add(MakeIssue("lighting_reflection_probe_exceeded",
                             "Reflection probe resolution " + data.MaxReflectionProbeResolution + " exceeds threshold " + profile.MaxReflectionProbeSize + ".",
                             UnityScannerIssueSeverity.Warning, data.ScenePath,
@@ -113,6 +121,7 @@ namespace UnityScanner.Categories.LightingAnalysis
                 {
                     foreach (var em in data.EmissiveMaterials)
                     {
+                        data.AddInfo("Emissive material '" + em.MaterialName + "' does not contribute to GI. Flags: " + em.GlobalIlluminationFlags);
                         issues.Add(MakeIssue("lighting_emissive_no_gi",
                             "Emissive material '" + em.MaterialName + "' does not contribute to GI. Flags: " + em.GlobalIlluminationFlags,
                             UnityScannerIssueSeverity.Info, data.ScenePath,
@@ -126,6 +135,7 @@ namespace UnityScanner.Categories.LightingAnalysis
                     var bakedLights = data.Lights.Where(l => l.LightMode == "Baked").ToList();
                     if (bakedLights.Count > 0 && data.LightmapCount == 0)
                     {
+                        data.AddWarning("Scene has " + bakedLights.Count + " baked lights but no lightmaps with " + data.ActivePipeline + " pipeline.");
                         issues.Add(MakeIssue("lighting_pipeline_mismatch",
                             "Scene has " + bakedLights.Count + " baked lights but no lightmaps with " + data.ActivePipeline + " pipeline.",
                             UnityScannerIssueSeverity.Warning, data.ScenePath,

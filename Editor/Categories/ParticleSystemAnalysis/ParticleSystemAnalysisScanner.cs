@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,25 +12,30 @@ namespace UnityScanner.Categories.ParticleSystemAnalysis
 {
     public static class ParticleSystemAnalysisScanner
     {
-        public static void ScanAll(
+        public static IEnumerator ScanAll(
             ParticleSystemAnalysisSettings settings,
             PlatformProfile profile,
             List<ParticleSystemData> results,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            int yieldInterval)
         {
-            if (profile == null) return;
+            if (profile == null) yield break;
 
-            ScanAssetParticleSystems(settings, profile, results, issueSink);
-            ScanSceneParticleSystems(settings, profile, results, issueSink);
+            var e1 = ScanAssetParticleSystems(settings, profile, results, issueSink, yieldInterval);
+            while (e1.MoveNext()) yield return e1.Current;
+
+            var e2 = ScanSceneParticleSystems(settings, profile, results, issueSink, yieldInterval);
+            while (e2.MoveNext()) yield return e2.Current;
 
             GC.Collect();
         }
 
-        private static void ScanAssetParticleSystems(
+        private static IEnumerator ScanAssetParticleSystems(
             ParticleSystemAnalysisSettings settings,
             PlatformProfile profile,
             List<ParticleSystemData> results,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            int yieldInterval)
         {
             issueSink.ReportProgress(0f, "Scanning particle system assets...");
 
@@ -38,6 +44,13 @@ namespace UnityScanner.Categories.ParticleSystemAnalysis
 
             for (var i = 0; i < prefabGuids.Length; i++)
             {
+                if (yieldInterval > 0 && i > 0 && i % yieldInterval == 0)
+                {
+                    System.GC.Collect();
+                    yield return 0.05f;
+                    System.GC.Collect();
+                }
+
                 if (i % 100 == 0)
                     issueSink.ReportProgress((float)i / total * 0.5f, "Scanning prefabs for particle systems...");
 
@@ -59,11 +72,12 @@ namespace UnityScanner.Categories.ParticleSystemAnalysis
             }
         }
 
-        private static void ScanSceneParticleSystems(
+        private static IEnumerator ScanSceneParticleSystems(
             ParticleSystemAnalysisSettings settings,
             PlatformProfile profile,
             List<ParticleSystemData> results,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            int yieldInterval)
         {
             issueSink.ReportProgress(0.5f, "Scanning scenes for particle systems...");
 
@@ -72,6 +86,13 @@ namespace UnityScanner.Categories.ParticleSystemAnalysis
 
             for (var i = 0; i < sceneGuids.Length; i++)
             {
+                if (yieldInterval > 0 && i > 0 && i % yieldInterval == 0)
+                {
+                    System.GC.Collect();
+                    yield return 0.05f;
+                    System.GC.Collect();
+                }
+
                 if (i % 50 == 0)
                     issueSink.ReportProgress(0.5f + (float)i / total * 0.5f, "Scanning scenes for particle systems...");
 

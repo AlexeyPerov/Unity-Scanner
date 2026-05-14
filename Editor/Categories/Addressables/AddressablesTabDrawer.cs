@@ -58,6 +58,7 @@ namespace UnityScanner.Categories.Addressables
         private string _groupsFilter;
         private Vector2 _groupsScroll;
         private readonly USPaginationSettings _groupsPagination = new() { PageToShow = 0, PageSize = 20 };
+        private int _groupsSortType;
         private BuildLayoutProvider.Group _selectedGroup;
         private Vector2 _selectedGroupScroll;
         private readonly Dictionary<BuildLayoutProvider.Archive, USAddressablesArchiveUiState> _archiveUIStates = new();
@@ -215,7 +216,7 @@ namespace UnityScanner.Categories.Addressables
             {
                 case SubTab.Groups:
                     if (Layout != null)
-                        Layout.Groups = Layout.Groups.OrderByDescending(x => x.TopWarning).ToList();
+                        SortGroups();
                     break;
                 case SubTab.Size:
                     InitSizeBundles();
@@ -305,8 +306,24 @@ namespace UnityScanner.Categories.Addressables
                 ? Layout.Groups.Where(x => x.Name.ToLowerInvariant().Contains(filterLowered)).ToList()
                 : Layout.Groups;
 
+            GUILayout.BeginHorizontal();
             GUILayout.Label("Groups found: " + Layout.Groups.Count + ". " +
                             (filtered.Count != Layout.Groups.Count ? $"Showing: {filtered.Count}" : string.Empty));
+
+            var sortLabel = _groupsSortType switch
+            {
+                0 => "Warnings Desc",
+                1 => "Warnings Asc",
+                2 => "Name A-Z",
+                3 => "Name Z-A",
+                _ => "Warnings Desc"
+            };
+            if (GUILayout.Button(new GUIContent("Sort: " + sortLabel, "Sort groups"), GUILayout.Width(130)))
+            {
+                _groupsSortType = _groupsSortType >= 3 ? 0 : _groupsSortType + 1;
+                if (Layout != null) SortGroups();
+            }
+            GUILayout.EndHorizontal();
 
             USGUIPaginationUtilities.DrawPagesWidget(filtered.Count, _groupsPagination);
 
@@ -346,6 +363,19 @@ namespace UnityScanner.Categories.Addressables
             GUILayout.FlexibleSpace();
             EditorGUILayout.EndVertical();
             EditorGUILayout.EndScrollView();
+        }
+
+        private void SortGroups()
+        {
+            if (Layout?.Groups == null) return;
+            Layout.Groups = _groupsSortType switch
+            {
+                0 => Layout.Groups.OrderByDescending(x => x.TopWarning).ToList(),
+                1 => Layout.Groups.OrderBy(x => x.TopWarning).ToList(),
+                2 => Layout.Groups.OrderBy(x => x.Name, StringComparer.Ordinal).ToList(),
+                3 => Layout.Groups.OrderByDescending(x => x.Name, StringComparer.Ordinal).ToList(),
+                _ => Layout.Groups.OrderByDescending(x => x.TopWarning).ToList()
+            };
         }
 
         private void DrawGroupDetail(BuildLayoutProvider.Group group)

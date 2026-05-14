@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -35,12 +36,13 @@ namespace UnityScanner.Categories.ShaderAnalysis
         {
         };
 
-        public static void ScanAll(
+        public static IEnumerator ScanAll(
             ShaderAnalysisSettings settings,
             PlatformProfile profile,
             List<ShaderData> shaders,
             List<MaterialData> materials,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            int yieldInterval)
         {
             var variantThreshold = settings.VariantThreshold;
             var passThreshold = settings.PassThreshold;
@@ -62,6 +64,13 @@ namespace UnityScanner.Categories.ShaderAnalysis
 
             for (var i = 0; i < assetPaths.Length; i++)
             {
+                if (yieldInterval > 0 && i > 0 && i % yieldInterval == 0)
+                {
+                    System.GC.Collect();
+                    yield return 0.05f;
+                    System.GC.Collect();
+                }
+
                 if (i % 500 == 0)
                 {
                     GC.Collect();
@@ -95,6 +104,13 @@ namespace UnityScanner.Categories.ShaderAnalysis
             var shaderGuids = AssetDatabase.FindAssets("t:Shader");
             for (var i = 0; i < shaderGuids.Length; i++)
             {
+                if (yieldInterval > 0 && i > 0 && i % yieldInterval == 0)
+                {
+                    System.GC.Collect();
+                    yield return 0.05f;
+                    System.GC.Collect();
+                }
+
                 if (i % 100 == 0)
                 {
                     GC.Collect();

@@ -118,8 +118,8 @@ namespace UnityScanner.UI.Window
             ("---", MainTab.Setup, ""),
             ("Dependencies", MainTab.Dependencies, "Find unreferenced assets in your project."),
             ("Missing Refs", MainTab.MissingReferences, "Detect missing scripts, broken GUID references, invalid layers."),
-            ("Textures and Atlases", MainTab.Textures, "Check texture compression, dimensions, atlas usage, duplicates."),
-            ("Sprites", MainTab.Sprite2DAnalysis, "Detect low atlas packing efficiency, unpacked sprites, polygon vertex excess, uneven sprite sheet cells, full-rect waste, duplicate sprite content."),
+            ("Textures Compression", MainTab.Textures, "Check texture compression, dimensions, atlas usage, duplicates."),
+            ("Sprites Packing", MainTab.Sprite2DAnalysis, "Detect low atlas packing efficiency, unpacked sprites, polygon vertex excess, uneven sprite sheet cells, full-rect waste, duplicate sprite content."),
             ("Shaders", MainTab.ShaderAnalysis, "Detect shader variant explosion, error/fallback shaders, expensive keywords, duplicate keyword profiles."),
             ("Materials and Renderers", MainTab.Materials, "Analyze materials for shader issues, null textures, batch compatibility."),
             ("Font and Text", MainTab.FontTextAnalysis, "Analyze TMP/Unity fonts for atlas sizes, fallback chains, dynamic growth risk."),
@@ -675,6 +675,11 @@ namespace UnityScanner.UI.Window
         {
             GUILayout.Space(10);
             GUILayout.Label("Unity Scanner Setup", EditorStyles.boldLabel);
+
+            var assetCount = AssetDatabase.GetAllAssetPaths().Count(p => p.StartsWith("Assets/"));
+            if (assetCount > 10000)
+                EditorGUILayout.HelpBox($"Project has {assetCount:N0} assets. Scanning may take several minutes. Consider using path filters to narrow scope.", MessageType.Warning);
+
             GUILayout.Space(5);
 
             USGUIUtilities.HorizontalLine();
@@ -1454,6 +1459,8 @@ namespace UnityScanner.UI.Window
             USGUIUtilities.HorizontalLine();
             DrawCacheSettings();
             USGUIUtilities.HorizontalLine();
+            DrawPerformanceSettings();
+            USGUIUtilities.HorizontalLine();
 
             EditorGUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
@@ -1463,6 +1470,8 @@ namespace UnityScanner.UI.Window
                 _settings.BinaryCacheEnabled = false;
                 _settings.BuildLayoutPath = "";
                 _buildLayoutPathDisplay = "";
+                _settings.YieldAssetThreshold = 5000;
+                _settings.YieldIntervalDivisor = 10;
                 _settings.SetPlatformProfile(PlatformProfilePresets.Mobile);
                 EditorPrefs.SetString(PlatformProfilePref, PlatformProfilePresets.Mobile);
             }
@@ -1524,6 +1533,29 @@ namespace UnityScanner.UI.Window
                     new GUIContent("Binary Cache", "Use binary format for cache files instead of JSON. Faster but not human-readable."),
                     _settings.BinaryCacheEnabled);
             EditorGUI.EndDisabledGroup();
+        }
+
+        private void DrawPerformanceSettings()
+        {
+            GUILayout.Label("Performance", EditorStyles.boldLabel);
+
+            _settings.YieldAssetThreshold = EditorGUILayout.IntField(
+                new GUIContent("Yield Asset Threshold",
+                    "Minimum number of assets before scanners start yielding. Lower values = more frequent yields = slower but smoother UI."),
+                _settings.YieldAssetThreshold);
+            if (_settings.YieldAssetThreshold < 100)
+                _settings.YieldAssetThreshold = 100;
+
+            _settings.YieldIntervalDivisor = EditorGUILayout.IntField(
+                new GUIContent("Yield Interval Divisor",
+                    "Controls how often scanners yield during scanning. Yield every (totalAssets / divisor) iterations. Higher values = less frequent yields."),
+                _settings.YieldIntervalDivisor);
+            if (_settings.YieldIntervalDivisor < 1)
+                _settings.YieldIntervalDivisor = 1;
+
+            EditorGUILayout.HelpBox(
+                $"Scanners will yield every ~{(_settings.YieldIntervalDivisor > 0 ? _settings.YieldAssetThreshold / _settings.YieldIntervalDivisor : 0)} assets when above {_settings.YieldAssetThreshold} total assets.",
+                MessageType.Info);
         }
 
         #endregion
@@ -1595,7 +1627,14 @@ namespace UnityScanner.UI.Window
             foreach (var cat in _registry.Categories)
             {
                 if (cat.Id == "regression_trend") continue;
-                _tabStates[cat.Id] = cat.Settings.Enabled ? TabState.Running : TabState.Skipped;
+                if (cat.Settings.Enabled)
+                {
+                    _tabStates[cat.Id] = TabState.Running;
+                }
+                else if (!_tabResults.ContainsKey(cat.Id))
+                {
+                    _tabStates[cat.Id] = TabState.Skipped;
+                }
             }
 
             _filteredSummaryIssues = null;

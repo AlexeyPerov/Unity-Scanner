@@ -22,6 +22,7 @@ namespace UnityScanner.Categories.UICanvasAnalysis
                 if (settings.CheckUnusedShaderChannels && !string.IsNullOrEmpty(data.EnabledChannels) &&
                     (data.UsedChannels == "None" || string.IsNullOrEmpty(data.UsedChannels)))
                 {
+                    data.AddInfo("Canvas '" + data.CanvasName + "' has additional shader channels enabled (" + data.EnabledChannels + ") but no child material uses them.");
                     issues.Add(MakeIssue("canvas_unused_shader_channels",
                         "Canvas '" + data.CanvasName + "' has additional shader channels enabled (" + data.EnabledChannels + ") but no child material uses them.",
                         UnityScannerIssueSeverity.Info, data.ScenePath,
@@ -31,6 +32,7 @@ namespace UnityScanner.Categories.UICanvasAnalysis
 
                 if (settings.CheckNestedRedundancy && data.IsNestedRedundant)
                 {
+                    data.AddInfo("Nested Canvas '" + data.CanvasName + "' is redundant — same render mode/sorting as parent '" + data.ParentCanvasPath + "'.");
                     issues.Add(MakeIssue("canvas_nested_redundancy",
                         "Nested Canvas '" + data.CanvasName + "' is redundant — same render mode/sorting as parent '" + data.ParentCanvasPath + "'.",
                         UnityScannerIssueSeverity.Info, data.ScenePath,
@@ -42,6 +44,7 @@ namespace UnityScanner.Categories.UICanvasAnalysis
                 {
                     foreach (var rt in data.UnnecessaryRaycasts)
                     {
+                        data.AddInfo("Non-interactive " + rt.ComponentType + " '" + rt.ObjectPath + "' has raycast target enabled but no event handler.");
                         issues.Add(MakeIssue("ui_unnecessary_raycast_target",
                             "Non-interactive " + rt.ComponentType + " '" + rt.ObjectPath + "' has raycast target enabled but no event handler.",
                             UnityScannerIssueSeverity.Info, data.ScenePath,
@@ -52,6 +55,7 @@ namespace UnityScanner.Categories.UICanvasAnalysis
 
                 if (settings.CheckLayoutNesting && data.LayoutNestingDepth > maxNestingDepth)
                 {
+                    data.AddWarning("Layout nesting depth " + data.LayoutNestingDepth + " in canvas '" + data.CanvasName + "' exceeds threshold " + maxNestingDepth + ".");
                     issues.Add(MakeIssue("ui_layout_nesting_depth",
                         "Layout nesting depth " + data.LayoutNestingDepth + " in canvas '" + data.CanvasName + "' exceeds threshold " + maxNestingDepth + ".",
                         UnityScannerIssueSeverity.Warning, data.ScenePath,
@@ -62,6 +66,7 @@ namespace UnityScanner.Categories.UICanvasAnalysis
 
                 if (settings.CheckVertexCount && data.VertexCount > maxVertexCount)
                 {
+                    data.AddWarning("Canvas '" + data.CanvasName + "' vertex count " + data.VertexCount + " exceeds threshold " + maxVertexCount + ".");
                     issues.Add(MakeIssue("canvas_vertex_count_exceeded",
                         "Canvas '" + data.CanvasName + "' vertex count " + data.VertexCount + " exceeds threshold " + maxVertexCount + ".",
                         UnityScannerIssueSeverity.Warning, data.ScenePath,
@@ -71,6 +76,7 @@ namespace UnityScanner.Categories.UICanvasAnalysis
 
                 if (settings.CheckTextTmpMix && data.LegacyTextCount > 0 && data.TmpTextCount > 0)
                 {
+                    data.AddInfo("Canvas '" + data.CanvasName + "' mixes legacy Text (" + data.LegacyTextCount + ") and TMP (" + data.TmpTextCount + ") components.");
                     issues.Add(MakeIssue("ui_text_tmp_mix",
                         "Canvas '" + data.CanvasName + "' mixes legacy Text (" + data.LegacyTextCount + ") and TMP (" + data.TmpTextCount + ") components.",
                         UnityScannerIssueSeverity.Info, data.ScenePath,
@@ -80,6 +86,7 @@ namespace UnityScanner.Categories.UICanvasAnalysis
 
                 if (settings.CheckAtlasWaste && data.UnpackedSpriteCount > 0)
                 {
+                    data.AddInfo("Canvas '" + data.CanvasName + "' has " + data.UnpackedSpriteCount + " sprites not packed into a shared atlas.");
                     issues.Add(MakeIssue("ui_atlas_waste",
                         "Canvas '" + data.CanvasName + "' has " + data.UnpackedSpriteCount + " sprites not packed into a shared atlas.",
                         UnityScannerIssueSeverity.Info, data.ScenePath,

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityScanner.Core.Categories;
 using UnityScanner.Core.Issues;
+using UnityEditor;
 
 namespace UnityScanner.Categories.AsmDefAudit
 {
@@ -26,8 +27,15 @@ namespace UnityScanner.Categories.AsmDefAudit
             issueSink.ReportProgress(0f, "Scanning assembly definitions...");
             yield return null;
 
+            var yieldInterval = USCoroutineHelper.ComputeYieldInterval(
+                AssetDatabase.GetAllAssetPaths().Length,
+                context?.Settings?.YieldAssetThreshold ?? 5000,
+                context?.Settings?.YieldIntervalDivisor ?? 10);
+
             var results = new List<AsmDefData>();
-            AsmDefAuditScanner.ScanAll(_settings, results, issueSink);
+            var enumerator = AsmDefAuditScanner.ScanAll(_settings, results, issueSink, yieldInterval);
+            while (enumerator.MoveNext())
+                yield return enumerator.Current;
 
             issueSink.ReportProgress(0.9f, "Mapping issues...");
             yield return null;

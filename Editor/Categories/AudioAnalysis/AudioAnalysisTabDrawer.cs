@@ -141,6 +141,7 @@ namespace UnityScanner.Categories.AudioAnalysis
                 if (c.DuplicatePaths.Count > 5) GUILayout.Label($"... and {c.DuplicatePaths.Count - 5} more", EditorStyles.miniLabel);
                 EditorGUI.indentLevel--;
             }
+            USGUIUtilities.DrawCustomWarnings(c);
             EditorGUILayout.EndVertical();
             EditorGUI.indentLevel--;
         }

@@ -136,6 +136,8 @@ namespace UnityScanner.Categories.PhysicsAnalysis
             EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
             if (GUILayout.Button(new GUIContent(isExpanded ? "v" : ">", "Expand/collapse"), EditorStyles.miniButton, GUILayout.Width(18)))
                 _expandedRow = isExpanded ? -1 : idx;
+            var sevColor = d.WarningLevel switch { >= 3 => Color.red, 2 => Color.yellow, 1 => Color.cyan, _ => Color.white };
+            USGUIUtilities.DrawColoredLabel(USGUIUtilities.GetSeverityTag(d.WarningLevel), sevColor, 75);
             var rbColor = d.RigidbodyCount > 500 ? Color.yellow : Color.white;
             USGUIUtilities.DrawColoredLabel("RB:" + d.RigidbodyCount, rbColor, 50);
             EditorGUILayout.LabelField(idx.ToString(), GUILayout.Width(30));
@@ -157,6 +159,7 @@ namespace UnityScanner.Categories.PhysicsAnalysis
                 }
                 if (d.Rigidbodies.Count > 20)
                     GUILayout.Label("  ... and " + (d.Rigidbodies.Count - 20) + " more", EditorStyles.miniLabel);
+                USGUIUtilities.DrawCustomWarnings(d);
                 EditorGUILayout.EndVertical();
                 EditorGUI.indentLevel--;
             }
@@ -168,6 +171,8 @@ namespace UnityScanner.Categories.PhysicsAnalysis
             EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
             if (GUILayout.Button(new GUIContent(isExpanded ? "v" : ">", "Expand/collapse"), EditorStyles.miniButton, GUILayout.Width(18)))
                 _expandedRow = isExpanded ? -1 : idx;
+            var sevColor = d.WarningLevel switch { >= 3 => Color.red, 2 => Color.yellow, 1 => Color.cyan, _ => Color.white };
+            USGUIUtilities.DrawColoredLabel(USGUIUtilities.GetSeverityTag(d.WarningLevel), sevColor, 75);
             GUILayout.Label("Col:" + d.ColliderCount + " Trg:" + d.TriggerCount, EditorStyles.miniLabel, GUILayout.Width(110));
             EditorGUILayout.LabelField(idx.ToString(), GUILayout.Width(30));
             if (!string.IsNullOrEmpty(d.ScenePath))
@@ -185,6 +190,7 @@ namespace UnityScanner.Categories.PhysicsAnalysis
                     if (col.TriangleCount > 0) warn += " [" + col.TriangleCount + " tris]";
                     GUILayout.Label("  " + col.ObjectPath + " (" + col.ColliderType + ")" + warn, EditorStyles.miniLabel);
                 }
+                USGUIUtilities.DrawCustomWarnings(d);
                 EditorGUILayout.EndVertical();
                 EditorGUI.indentLevel--;
             }
@@ -199,6 +205,8 @@ namespace UnityScanner.Categories.PhysicsAnalysis
             EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
             if (GUILayout.Button(new GUIContent(isExpanded ? "v" : ">", "Expand/collapse"), EditorStyles.miniButton, GUILayout.Width(18)))
                 _expandedRow = isExpanded ? -1 : idx;
+            var sevColor = d.WarningLevel switch { >= 3 => Color.red, 2 => Color.yellow, 1 => Color.cyan, _ => Color.white };
+            USGUIUtilities.DrawColoredLabel(USGUIUtilities.GetSeverityTag(d.WarningLevel), sevColor, 75);
             USGUIUtilities.DrawColoredLabel("Bloat:" + emptyPairs.Count, Color.cyan, 60);
             EditorGUILayout.LabelField(idx.ToString(), GUILayout.Width(30));
             if (!string.IsNullOrEmpty(d.ScenePath))
@@ -218,6 +226,7 @@ namespace UnityScanner.Categories.PhysicsAnalysis
                 }
                 if (emptyPairs.Count > 15)
                     GUILayout.Label("  ... and " + (emptyPairs.Count - 15) + " more", EditorStyles.miniLabel);
+                USGUIUtilities.DrawCustomWarnings(d);
                 EditorGUILayout.EndVertical();
                 EditorGUI.indentLevel--;
             }
@@ -232,6 +241,8 @@ namespace UnityScanner.Categories.PhysicsAnalysis
             EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
             if (GUILayout.Button(new GUIContent(isExpanded ? "v" : ">", "Expand/collapse"), EditorStyles.miniButton, GUILayout.Width(18)))
                 _expandedRow = isExpanded ? -1 : idx;
+            var sevColor = d.WarningLevel switch { >= 3 => Color.red, 2 => Color.yellow, 1 => Color.cyan, _ => Color.white };
+            USGUIUtilities.DrawColoredLabel(USGUIUtilities.GetSeverityTag(d.WarningLevel), sevColor, 75);
             USGUIUtilities.DrawColoredLabel("NoMat:" + missingMaterial.Count, Color.yellow, 65);
             EditorGUILayout.LabelField(idx.ToString(), GUILayout.Width(30));
             if (!string.IsNullOrEmpty(d.ScenePath))
@@ -245,6 +256,7 @@ namespace UnityScanner.Categories.PhysicsAnalysis
                     GUILayout.Label("  " + col.ObjectPath + " (" + col.ColliderType + ")", EditorStyles.miniLabel);
                 if (missingMaterial.Count > 15)
                     GUILayout.Label("  ... and " + (missingMaterial.Count - 15) + " more", EditorStyles.miniLabel);
+                USGUIUtilities.DrawCustomWarnings(d);
                 EditorGUILayout.EndVertical();
                 EditorGUI.indentLevel--;
             }

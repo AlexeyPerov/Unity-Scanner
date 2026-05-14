@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityScanner.Core.Issues;
@@ -11,26 +12,35 @@ namespace UnityScanner.Categories.Sprite2DAnalysis
 {
     public static class Sprite2DAnalysisScanner
     {
-        public static void ScanAll(
+        public static IEnumerator ScanAll(
             Sprite2DAnalysisSettings settings,
             PlatformProfile profile,
             List<SpriteAtlasData> atlasResults,
             List<SpriteEntry> spriteResults,
             List<DuplicateGroup> duplicateResults,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            int yieldInterval)
         {
-            ScanAtlases(settings, profile, atlasResults, spriteResults, issueSink);
-            ScanLooseSprites(settings, spriteResults, issueSink);
+            var e1 = ScanAtlases(settings, profile, atlasResults, spriteResults, issueSink, yieldInterval);
+            while (e1.MoveNext()) yield return e1.Current;
+
+            var e2 = ScanLooseSprites(settings, spriteResults, issueSink, yieldInterval);
+            while (e2.MoveNext()) yield return e2.Current;
+
             if (settings.CheckDuplicateContent)
-                FindDuplicateSprites(settings, duplicateResults, issueSink);
+            {
+                var e3 = FindDuplicateSprites(settings, duplicateResults, issueSink, yieldInterval);
+                while (e3.MoveNext()) yield return e3.Current;
+            }
         }
 
-        private static void ScanAtlases(
+        private static IEnumerator ScanAtlases(
             Sprite2DAnalysisSettings settings,
             PlatformProfile profile,
             List<SpriteAtlasData> atlasResults,
             List<SpriteEntry> spriteResults,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            int yieldInterval)
         {
             issueSink.ReportProgress(0f, "Scanning sprite atlases...");
 
@@ -39,6 +49,13 @@ namespace UnityScanner.Categories.Sprite2DAnalysis
 
             for (var i = 0; i < total; i++)
             {
+                if (yieldInterval > 0 && i > 0 && i % yieldInterval == 0)
+                {
+                    System.GC.Collect();
+                    yield return 0.05f;
+                    System.GC.Collect();
+                }
+
                 if (i % 10 == 0)
                     issueSink.ReportProgress((float)i / total * 0.5f, "Scanning sprite atlases...");
 
@@ -78,10 +95,11 @@ namespace UnityScanner.Categories.Sprite2DAnalysis
             }
         }
 
-        private static void ScanLooseSprites(
+        private static IEnumerator ScanLooseSprites(
             Sprite2DAnalysisSettings settings,
             List<SpriteEntry> spriteResults,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            int yieldInterval)
         {
             issueSink.ReportProgress(0.5f, "Scanning loose sprites...");
 
@@ -95,6 +113,13 @@ namespace UnityScanner.Categories.Sprite2DAnalysis
 
             for (var i = 0; i < total; i++)
             {
+                if (yieldInterval > 0 && i > 0 && i % yieldInterval == 0)
+                {
+                    System.GC.Collect();
+                    yield return 0.05f;
+                    System.GC.Collect();
+                }
+
                 if (i % 100 == 0)
                     issueSink.ReportProgress(0.5f + (float)i / total * 0.4f, "Scanning loose sprites...");
 
@@ -113,19 +138,27 @@ namespace UnityScanner.Categories.Sprite2DAnalysis
             }
         }
 
-        private static void FindDuplicateSprites(
+        private static IEnumerator FindDuplicateSprites(
             Sprite2DAnalysisSettings settings,
             List<DuplicateGroup> duplicateResults,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            int yieldInterval)
         {
             issueSink.ReportProgress(0.9f, "Checking for duplicate sprites...");
 
             var spriteGuids = AssetDatabase.FindAssets("t:Sprite");
             var hashMap = new Dictionary<string, List<string>>();
 
-            foreach (var guid in spriteGuids)
+            for (var i = 0; i < spriteGuids.Length; i++)
             {
-                var path = AssetDatabase.GUIDToAssetPath(guid);
+                if (yieldInterval > 0 && i > 0 && i % yieldInterval == 0)
+                {
+                    System.GC.Collect();
+                    yield return 0.05f;
+                    System.GC.Collect();
+                }
+
+                var path = AssetDatabase.GUIDToAssetPath(spriteGuids[i]);
                 if (!string.IsNullOrEmpty(settings.PathFilter) &&
                     path.IndexOf(settings.PathFilter, StringComparison.OrdinalIgnoreCase) < 0)
                     continue;

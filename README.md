@@ -1,8 +1,8 @@
-# UnityScanner ![unity](https://img.shields.io/badge/Unity-100000?style=for-the-badge&logo=unity&logoColor=white)
+# UnityScanner (Editor & MCP) ![unity](https://img.shields.io/badge/Unity-100000?style=for-the-badge&logo=unity&logoColor=white)
 
 ##
 A unified Unity Editor tool for project health analysis across 14 categories.
-Combines dependency scanning, addressables build layout analysis, missing reference detection, material/texture/shader auditing, and platform readiness checks — all in one tool with batch API support.
+Combines dependency scanning, addressables build layout analysis, missing reference detection, material/texture/shader auditing, and platform readiness checks — all in one modular window with batch API support.
 
 **Menu:** `Tools > Unity Scanner`
 
@@ -152,14 +152,106 @@ var result = UnityScannerBatch.RunAddressables(new BatchOptions {
     FailOnSeverity = "warn"
 });
 ```
+
+# MCP Server
+
+UnityScanner includes an MCP server that lets AI coding assistants run project health scans directly from the terminal or IDE.
+
+**What it enables:**
+- AI-assisted project health — ask "check my project for shader issues" and get a structured report
+- Automated review of non-code assets — scan before/after a change and detect regressions
+- CI via AI agents — AI interprets scan results and files actionable reports
+- Headless operation — runs via Unity batch mode, works on CI servers
+
+## Installation
+
+```bash
+cd path/to/MCP-Server~
+npm install
+npm run build
+```
+
+Then create a config file (see `mcp-config.example.json`):
+
+```json
+{
+  "unityPath": "/Applications/Unity/Hub/Editor/6000.0.42f1/Unity.app/Contents/MacOS/Unity",
+  "projectPath": "/path/to/your/UnityProject",
+  "timeouts": {
+    "default": 120,
+    "runAll": 300
+  }
+}
+```
+
+Save as `mcp-config.json` in the server directory, your project root, or `~/.unityscanner/`.
+
+## Configure with AI Tools
+
+**Claude Desktop** — add to `claude_desktop_config.json`:
+```json
+{
+  "mcpServers": {
+    "unityscanner": {
+      "command": "node",
+      "args": ["path/to/MCP-Server~/src/index.ts"]
+    }
+  }
+}
+```
+
+**Cursor / OpenCode** — add to your MCP settings:
+```json
+{
+  "mcpServers": {
+    "unityscanner": {
+      "command": "node",
+      "args": ["./path/to/MCP-Server~/src/index.ts"]
+  }
+}
+```
+
+## Available Tools
+
+| Tool | Description |
+|---|---|
+| `unity_scanner_run_all` | Run all enabled categories — full project scan |
+| `unity_scanner_run_category` | Run a specific category (e.g. `project_health`, `shader_analysis`) |
+| `unity_scanner_run_selected` | Run multiple selected categories |
+| `unity_scanner_list_categories` | List all available categories and IDs |
+| `unity_scanner_get_settings` | Get current settings and platform profile |
+| `unity_scanner_set_profile` | Set platform profile (`mobile`, `console`, `desktop`) |
+| `unity_scanner_regression_check` | Compare scan results against a saved baseline |
+| `unity_scanner_baseline_create` | Create a baseline snapshot for regression tracking |
+
+## Example Prompts
+
+```
+"Run a full project scan and tell me what's wrong"
+"Check my project for shader issues"
+"Set the platform profile to mobile, then run project_health and build_platform_readiness"
+"List all available scanner categories"
+"Create a baseline snapshot of current project health"
+```
+
+## Architecture
+
+The MCP server uses a bridge architecture:
+```
+AI Client → stdio JSON-RPC → Node.js MCP Server → Unity batch mode → UnityScanner API → JSON result file
+```
+
+Each tool call launches a fresh Unity batch mode instance (~10-30s startup). Results are written to a temp file and returned as both human-readable text and structured JSON.
+
 # Architecture
 
 ```
 Assets/Editor/UnityScanner/
   Core/           — Category registry, issue model, results, settings
-  Categories/     — 13 category modules (scanner, mapper, settings, tab drawer)
+  Categories/     — 14 category modules (scanner, mapper, settings, tab drawer)
   UI/             — Main window, controls
   Batch/          — Batch API entry points
+  MCP/            — MCP server for AI integration (C# entry points + Node.js server)
   Windows/        — Standalone windows (Find References)
   ContextMenus/   — [US] menu entries
 ```

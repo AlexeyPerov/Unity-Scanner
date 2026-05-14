@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,11 +12,12 @@ namespace UnityScanner.Categories.TerrainAnalysis
 {
     public static class TerrainAnalysisScanner
     {
-        public static void ScanAll(
+        public static IEnumerator ScanAll(
             TerrainAnalysisSettings settings,
             PlatformProfile profile,
             List<TerrainDataInfo> terrains,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            int yieldInterval)
         {
             var terrainGuids = AssetDatabase.FindAssets("t:Terrain");
             var total = terrainGuids.Length;
@@ -26,6 +28,13 @@ namespace UnityScanner.Categories.TerrainAnalysis
                 {
                     GC.Collect();
                     issueSink.ReportProgress((float)i / total, "Scanning terrains...");
+                }
+
+                if (yieldInterval > 0 && i > 0 && i % yieldInterval == 0)
+                {
+                    System.GC.Collect();
+                    yield return 0.05f;
+                    System.GC.Collect();
                 }
 
                 var terrainPath = AssetDatabase.GUIDToAssetPath(terrainGuids[i]);

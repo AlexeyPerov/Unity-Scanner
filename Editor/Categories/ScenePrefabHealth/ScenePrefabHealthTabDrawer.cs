@@ -202,6 +202,7 @@ namespace UnityScanner.Categories.ScenePrefabHealth
                     GUILayout.Label(io.ObjectPath + " [" + io.ComponentType + "]", EditorStyles.miniLabel);
                 EditorGUI.indentLevel--;
             }
+            USGUIUtilities.DrawCustomWarnings(s);
             EditorGUILayout.EndVertical();
             EditorGUI.indentLevel--;
         }
@@ -229,6 +230,7 @@ namespace UnityScanner.Categories.ScenePrefabHealth
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             GUILayout.Label("Path: " + p.Path, EditorStyles.miniLabel);
             GUILayout.Label("Nesting: " + p.NestingDepth + " | Overrides: " + p.OverrideCount + " | Children: " + p.ChildCount + " | Components: " + p.ComponentCount + " | Size: " + USExportUtilities.GetReadableSize(p.FileSizeBytes), EditorStyles.miniLabel);
+            USGUIUtilities.DrawCustomWarnings(p);
             EditorGUILayout.EndVertical();
             EditorGUI.indentLevel--;
         }

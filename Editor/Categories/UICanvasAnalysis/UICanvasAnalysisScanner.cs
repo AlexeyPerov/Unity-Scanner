@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityScanner.Core.Issues;
@@ -13,29 +14,44 @@ namespace UnityScanner.Categories.UICanvasAnalysis
 {
     public static class UICanvasAnalysisScanner
     {
-        public static void ScanAll(
+        public static IEnumerator ScanAll(
             UICanvasAnalysisSettings settings,
             PlatformProfile profile,
             List<CanvasData> results,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            int yieldInterval)
         {
-            ScanScenes(settings, profile, results, issueSink);
+            var e1 = ScanScenes(settings, profile, results, issueSink, yieldInterval);
+            while (e1.MoveNext()) yield return e1.Current;
+
             if (settings.ScanPrefabs)
-                ScanPrefabs(settings, profile, results, issueSink);
+            {
+                var e2 = ScanPrefabs(settings, profile, results, issueSink, yieldInterval);
+                while (e2.MoveNext()) yield return e2.Current;
+            }
+
             System.GC.Collect();
         }
 
-        private static void ScanScenes(
+        private static IEnumerator ScanScenes(
             UICanvasAnalysisSettings settings,
             PlatformProfile profile,
             List<CanvasData> results,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            int yieldInterval)
         {
             var sceneGuids = AssetDatabase.FindAssets("t:Scene");
             var total = sceneGuids.Length;
 
             for (var i = 0; i < sceneGuids.Length; i++)
             {
+                if (yieldInterval > 0 && i > 0 && i % yieldInterval == 0)
+                {
+                    System.GC.Collect();
+                    yield return 0.05f;
+                    System.GC.Collect();
+                }
+
                 if (i % 5 == 0)
                     issueSink.ReportProgress((float)i / total, "Scanning scenes for UI/Canvas...");
 
@@ -68,17 +84,25 @@ namespace UnityScanner.Categories.UICanvasAnalysis
             }
         }
 
-        private static void ScanPrefabs(
+        private static IEnumerator ScanPrefabs(
             UICanvasAnalysisSettings settings,
             PlatformProfile profile,
             List<CanvasData> results,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            int yieldInterval)
         {
             var prefabGuids = AssetDatabase.FindAssets("t:Prefab");
             var total = prefabGuids.Length;
 
             for (var i = 0; i < prefabGuids.Length; i++)
             {
+                if (yieldInterval > 0 && i > 0 && i % yieldInterval == 0)
+                {
+                    System.GC.Collect();
+                    yield return 0.05f;
+                    System.GC.Collect();
+                }
+
                 if (i % 100 == 0)
                     issueSink.ReportProgress(0.5f + (float)i / total * 0.5f, "Scanning prefabs for UI/Canvas...");
 

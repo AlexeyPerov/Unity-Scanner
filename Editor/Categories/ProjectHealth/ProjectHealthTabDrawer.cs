@@ -147,6 +147,7 @@ namespace UnityScanner.Categories.ProjectHealth
                 if (entry.FileSizeBytes > 0)
                     GUILayout.Label("Size: " + USExportUtilities.GetReadableSize(entry.FileSizeBytes), EditorStyles.miniLabel);
                 GUILayout.Label("Detail: " + entry.Detail, EditorStyles.miniLabel);
+                USGUIUtilities.DrawCustomWarnings(entry);
                 EditorGUILayout.EndVertical();
                 EditorGUI.indentLevel--;
             }

@@ -135,6 +135,8 @@ namespace UnityScanner.Categories.LODAnalysis
             EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
             if (GUILayout.Button(new GUIContent(isExpanded ? "v" : ">", "Expand/collapse"), EditorStyles.miniButton, GUILayout.Width(18)))
                 _expandedRow = isExpanded ? -1 : idx;
+            var sevColor = d.WarningLevel switch { >= 3 => Color.red, 2 => Color.yellow, 1 => Color.cyan, _ => Color.white };
+            USGUIUtilities.DrawColoredLabel(USGUIUtilities.GetSeverityTag(d.WarningLevel), sevColor, 75);
             var countColor = d.LODLevelCount < 2 ? Color.yellow : Color.white;
             USGUIUtilities.DrawColoredLabel("LODs:" + d.LODLevelCount, countColor, 55);
             EditorGUILayout.LabelField(idx.ToString(), GUILayout.Width(30));
@@ -157,6 +159,7 @@ namespace UnityScanner.Categories.LODAnalysis
                     GUILayout.Label("  LOD" + level.LevelIndex + ": " + level.ScreenTransitionHeight.ToString("F3") +
                         " height, " + level.RendererCount + " renderers, " + level.TriangleCount + " tris" + nullWarn, EditorStyles.miniLabel);
                 }
+                USGUIUtilities.DrawCustomWarnings(d);
                 EditorGUILayout.EndVertical();
                 EditorGUI.indentLevel--;
             }
@@ -166,6 +169,8 @@ namespace UnityScanner.Categories.LODAnalysis
         {
             if (!d.Levels.Any(l => l.HasNullRenderers) && d.LODLevelCount >= 2) return;
             EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
+            var sevColor = d.WarningLevel switch { >= 3 => Color.red, 2 => Color.yellow, 1 => Color.cyan, _ => Color.white };
+            USGUIUtilities.DrawColoredLabel(USGUIUtilities.GetSeverityTag(d.WarningLevel), sevColor, 75);
             var missColor = d.Levels.Any(l => l.HasNullRenderers) ? Color.red : (d.LODLevelCount < 2 ? Color.yellow : Color.white);
             USGUIUtilities.DrawColoredLabel("Levels:" + d.LODLevelCount, missColor, 60);
             EditorGUILayout.LabelField(idx.ToString(), GUILayout.Width(30));
@@ -197,6 +202,8 @@ namespace UnityScanner.Categories.LODAnalysis
             if (!hasMismatch) return;
 
             EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
+            var sevColor = d.WarningLevel switch { >= 3 => Color.red, 2 => Color.yellow, 1 => Color.cyan, _ => Color.white };
+            USGUIUtilities.DrawColoredLabel(USGUIUtilities.GetSeverityTag(d.WarningLevel), sevColor, 75);
             USGUIUtilities.DrawColoredLabel("Mat Mismatch", Color.yellow, 90);
             EditorGUILayout.LabelField(idx.ToString(), GUILayout.Width(30));
             if (!string.IsNullOrEmpty(d.AssetPath))
@@ -225,6 +232,8 @@ namespace UnityScanner.Categories.LODAnalysis
             if (!hasCloseTransitions && d.AnimateCrossFading) return;
 
             EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
+            var sevColor = d.WarningLevel switch { >= 3 => Color.red, 2 => Color.yellow, 1 => Color.cyan, _ => Color.white };
+            USGUIUtilities.DrawColoredLabel(USGUIUtilities.GetSeverityTag(d.WarningLevel), sevColor, 75);
             if (hasCloseTransitions)
                 USGUIUtilities.DrawColoredLabel("Close Trans.", Color.cyan, 80);
             else

@@ -4,6 +4,7 @@ using System.Linq;
 using UnityScanner.Core.Categories;
 using UnityScanner.Core.Issues;
 using UnityScanner.Core.Settings;
+using UnityEditor;
 
 namespace UnityScanner.Categories.FontTextAnalysis
 {
@@ -31,8 +32,15 @@ namespace UnityScanner.Categories.FontTextAnalysis
             issueSink.ReportProgress(0f, "Scanning fonts and text assets...");
             yield return null;
 
+            var yieldInterval = USCoroutineHelper.ComputeYieldInterval(
+                AssetDatabase.GetAllAssetPaths().Length,
+                context?.Settings?.YieldAssetThreshold ?? 5000,
+                context?.Settings?.YieldIntervalDivisor ?? 10);
+
             var fonts = new List<FontAssetData>();
-            FontTextAnalysisScanner.ScanAll(settings, profile, fonts, issueSink);
+            var enumerator = FontTextAnalysisScanner.ScanAll(settings, profile, fonts, issueSink, yieldInterval);
+            while (enumerator.MoveNext())
+                yield return enumerator.Current;
 
             issueSink.ReportProgress(0.9f, "Mapping issues...");
             yield return null;

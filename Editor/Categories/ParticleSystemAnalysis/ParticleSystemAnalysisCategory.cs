@@ -4,6 +4,7 @@ using System.Linq;
 using UnityScanner.Core.Categories;
 using UnityScanner.Core.Issues;
 using UnityScanner.Core.Settings;
+using UnityEditor;
 
 namespace UnityScanner.Categories.ParticleSystemAnalysis
 {
@@ -29,9 +30,16 @@ namespace UnityScanner.Categories.ParticleSystemAnalysis
             issueSink.ReportProgress(0f, "Scanning particle systems...");
             yield return null;
 
+            var yieldInterval = USCoroutineHelper.ComputeYieldInterval(
+                AssetDatabase.GetAllAssetPaths().Length,
+                context?.Settings?.YieldAssetThreshold ?? 5000,
+                context?.Settings?.YieldIntervalDivisor ?? 10);
+
             var results = new List<ParticleSystemData>();
 
-            ParticleSystemAnalysisScanner.ScanAll(_settings, profile, results, issueSink);
+            var enumerator = ParticleSystemAnalysisScanner.ScanAll(_settings, profile, results, issueSink, yieldInterval);
+            while (enumerator.MoveNext())
+                yield return enumerator.Current;
 
             foreach (var data in results)
             {

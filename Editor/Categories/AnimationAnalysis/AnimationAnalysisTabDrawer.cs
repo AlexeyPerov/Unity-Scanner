@@ -213,6 +213,7 @@ namespace UnityScanner.Categories.AnimationAnalysis
                     GUILayout.Label("... and " + (a.ParameterMismatches.Count - 10) + " more", EditorStyles.miniLabel);
                 EditorGUI.indentLevel--;
             }
+            USGUIUtilities.DrawCustomWarnings(a);
             EditorGUILayout.EndVertical();
             EditorGUI.indentLevel--;
         }
@@ -251,6 +252,7 @@ namespace UnityScanner.Categories.AnimationAnalysis
                     GUILayout.Label("... and " + (c.DuplicatePaths.Count - 5) + " more", EditorStyles.miniLabel);
                 EditorGUI.indentLevel--;
             }
+            USGUIUtilities.DrawCustomWarnings(c);
             EditorGUILayout.EndVertical();
             EditorGUI.indentLevel--;
         }

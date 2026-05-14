@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,10 +11,11 @@ namespace UnityScanner.Categories.AsmDefAudit
 {
     public static class AsmDefAuditScanner
     {
-        public static void ScanAll(
+        public static IEnumerator ScanAll(
             AsmDefAuditSettings settings,
             List<AsmDefData> results,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            int yieldInterval)
         {
             issueSink.ReportProgress(0f, "Finding assembly definitions...");
 
@@ -22,6 +24,13 @@ namespace UnityScanner.Categories.AsmDefAudit
 
             for (var i = 0; i < total; i++)
             {
+                if (yieldInterval > 0 && i > 0 && i % yieldInterval == 0)
+                {
+                    System.GC.Collect();
+                    yield return 0.05f;
+                    System.GC.Collect();
+                }
+
                 if (i % 50 == 0)
                     issueSink.ReportProgress((float)i / total * 0.8f, "Parsing assembly definitions...");
 

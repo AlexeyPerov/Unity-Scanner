@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityScanner.Core.Categories;
 using UnityScanner.Core.Issues;
+using UnityEditor;
 
 namespace UnityScanner.Categories.MissingReferences
 {
@@ -27,7 +28,15 @@ namespace UnityScanner.Categories.MissingReferences
             issueSink.ReportProgress(0f, "Scanning for missing references...");
             yield return null;
 
-            LastAssets = MissingReferencesScanner.ScanAllAssets(_settings, issueSink);
+            var yieldInterval = USCoroutineHelper.ComputeYieldInterval(
+                AssetDatabase.GetAllAssetPaths().Length,
+                context?.Settings?.YieldAssetThreshold ?? 5000,
+                context?.Settings?.YieldIntervalDivisor ?? 10);
+
+            LastAssets = new List<MissingRefAssetData>();
+            var enumerator = MissingReferencesScanner.ScanAllAssets(_settings, issueSink, LastAssets, yieldInterval);
+            while (enumerator.MoveNext())
+                yield return enumerator.Current;
 
             issueSink.ReportProgress(0.8f, "Mapping issues...");
             yield return null;

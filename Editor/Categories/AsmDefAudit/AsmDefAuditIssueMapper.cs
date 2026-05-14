@@ -20,6 +20,9 @@ namespace UnityScanner.Categories.AsmDefAudit
                     if (group.Value.Count > 1)
                     {
                         var paths = string.Join(", ", group.Value.Select(d => d.AssemblyPath));
+                        var msg = "Duplicate assembly name '" + group.Key + "' found in " + group.Value.Count + " files. Each assembly must have a unique name. Rename one of the assemblies or consolidate them.";
+                        foreach (var d in group.Value)
+                            d.AddError(msg);
                         issues.Add(MakeIssue("asmdef_duplicate_name",
                             "Duplicate assembly name '" + group.Key + "' in " + group.Value.Count + " files.",
                             UnityScannerIssueSeverity.Error, group.Value[0].AssemblyPath,
@@ -36,6 +39,7 @@ namespace UnityScanner.Categories.AsmDefAudit
                     var cycle = FindCycle(data, results);
                     if (cycle != null)
                     {
+                        data.AddError("Circular reference detected: " + cycle + ". Circular dependencies prevent the compiler from determining build order. Remove one of the references to break the cycle.");
                         issues.Add(MakeIssue("asmdef_circular_reference",
                             "Circular reference: " + cycle,
                             UnityScannerIssueSeverity.Error, data.AssemblyPath,
@@ -50,6 +54,7 @@ namespace UnityScanner.Categories.AsmDefAudit
                     {
                         foreach (var edRef in editorRefs)
                         {
+                            data.AddWarning("Runtime assembly references editor assembly '" + edRef + "'. This will cause compilation errors in builds. Add 'Editor' to includePlatforms or move the reference to an editor-only assembly.");
                             issues.Add(MakeIssue("asmdef_editor_in_runtime",
                                 "Runtime assembly '" + data.AssemblyName + "' references '" + edRef + "'.",
                                 UnityScannerIssueSeverity.Warning, data.AssemblyPath,
@@ -66,6 +71,7 @@ namespace UnityScanner.Categories.AsmDefAudit
                         other.References.Contains(data.AssemblyName));
                     if (!isReferenced)
                     {
+                        data.AddInfo("Assembly has autoReferenced=false but no other assembly references it. Either set autoReferenced=true or add an explicit reference from a dependent assembly.");
                         issues.Add(MakeIssue("asmdef_auto_referenced_orphan",
                             "Assembly '" + data.AssemblyName + "' has autoReferenced=false but is not referenced by any other assembly.",
                             UnityScannerIssueSeverity.Info, data.AssemblyPath,
@@ -75,6 +81,7 @@ namespace UnityScanner.Categories.AsmDefAudit
 
                 if (settings.CheckPlatformFilterBroad && data.IncludePlatforms.Count == 0 && data.ExcludePlatforms.Count == 0 && data.AnyPlatform)
                 {
+                    data.AddInfo("Assembly compiles for all platforms (no platform filters). Consider restricting to relevant platforms to reduce build time and size. Use includePlatforms or excludePlatforms in the .asmdef file.");
                     issues.Add(MakeIssue("asmdef_platform_filter_broad",
                         "Assembly '" + data.AssemblyName + "' compiles for all platforms (no platform filters).",
                         UnityScannerIssueSeverity.Info, data.AssemblyPath,
@@ -83,6 +90,7 @@ namespace UnityScanner.Categories.AsmDefAudit
 
                 if (settings.CheckPlatformFilterContradict && data.IncludePlatforms.Count > 0 && data.ExcludePlatforms.Count > 0)
                 {
+                    data.AddWarning("Assembly has both includePlatforms and excludePlatforms set simultaneously. This is contradictory — use only one. includePlatforms specifies which platforms to compile for; excludePlatforms specifies which to skip.");
                     issues.Add(MakeIssue("asmdef_platform_filter_contradict",
                         "Assembly '" + data.AssemblyName + "' has both includePlatforms and excludePlatforms set.",
                         UnityScannerIssueSeverity.Warning, data.AssemblyPath,
@@ -97,6 +105,7 @@ namespace UnityScanner.Categories.AsmDefAudit
                     {
                         if (!string.IsNullOrEmpty(vd.Package) && vd.Package.StartsWith("com."))
                         {
+                            data.AddInfo("Version define references package '" + vd.Package + "'. Ensure the package is installed and the version constraint is valid. Invalid version defines silently fail and the symbol will not be defined.");
                             issues.Add(MakeIssue("asmdef_version_define_invalid",
                                 "Assembly '" + data.AssemblyName + "' references package '" + vd.Package + "' in version defines.",
                                 UnityScannerIssueSeverity.Info, data.AssemblyPath,

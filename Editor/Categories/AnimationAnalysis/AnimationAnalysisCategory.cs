@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityScanner.Core.Categories;
 using UnityScanner.Core.Issues;
+using UnityEditor;
 using UnityScanner.Core.Settings;
 
 namespace UnityScanner.Categories.AnimationAnalysis
@@ -31,10 +32,17 @@ namespace UnityScanner.Categories.AnimationAnalysis
             issueSink.ReportProgress(0f, "Scanning animation assets...");
             yield return null;
 
+            var yieldInterval = USCoroutineHelper.ComputeYieldInterval(
+                AssetDatabase.GetAllAssetPaths().Length,
+                context?.Settings?.YieldAssetThreshold ?? 5000,
+                context?.Settings?.YieldIntervalDivisor ?? 10);
+
             var animators = new List<AnimatorData>();
             var clips = new List<AnimationClipData>();
 
-            AnimationAnalysisScanner.ScanAll(settings, animators, clips, issueSink);
+            var enumerator = AnimationAnalysisScanner.ScanAll(settings, animators, clips, issueSink, yieldInterval);
+            while (enumerator.MoveNext())
+                yield return enumerator.Current;
 
             issueSink.ReportProgress(0.9f, "Mapping issues...");
             yield return null;

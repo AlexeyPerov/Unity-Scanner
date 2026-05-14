@@ -17,6 +17,7 @@ namespace UnityScanner.Categories.AnimationAnalysis
             {
                 if (settings.DetectMissingReferences && animator.HasMissingController)
                 {
+                    animator.AddError("Animator '" + animator.Name + "' references missing controller.");
                     issues.Add(MakeIssue("missing_controller",
                         "Animator '" + animator.Name + "' references missing controller.",
                         UnityScannerIssueSeverity.Error, animator.Path));
@@ -24,6 +25,7 @@ namespace UnityScanner.Categories.AnimationAnalysis
 
                 if (settings.DetectMissingReferences && animator.HasMissingAvatar)
                 {
+                    animator.AddError("Animator '" + animator.Name + "' references missing avatar.");
                     issues.Add(MakeIssue("missing_avatar",
                         "Animator '" + animator.Name + "' references missing avatar.",
                         UnityScannerIssueSeverity.Error, animator.Path));
@@ -33,6 +35,7 @@ namespace UnityScanner.Categories.AnimationAnalysis
                 {
                     foreach (var missing in animator.MissingReferences)
                     {
+                        animator.AddError("Animator '" + animator.Name + "': " + missing);
                         issues.Add(MakeIssue("missing_clip",
                             "Animator '" + animator.Name + "': " + missing,
                             UnityScannerIssueSeverity.Error, animator.Path));
@@ -41,6 +44,7 @@ namespace UnityScanner.Categories.AnimationAnalysis
 
                 if (settings.DetectComplexityOverThreshold && animator.StateCount > settings.StateMachineComplexityThreshold)
                 {
+                    animator.AddWarning("Animator '" + animator.Name + "' has " + animator.StateCount + " states (threshold: " + settings.StateMachineComplexityThreshold + "). Transitions: " + animator.TransitionCount + ".");
                     issues.Add(MakeIssue("complexity_over_threshold",
                         "Animator '" + animator.Name + "' has " + animator.StateCount + " states (threshold: " + settings.StateMachineComplexityThreshold + "). Transitions: " + animator.TransitionCount + ".",
                         UnityScannerIssueSeverity.Warning, animator.Path));
@@ -48,6 +52,7 @@ namespace UnityScanner.Categories.AnimationAnalysis
 
                 if (settings.DetectAnyStateOveruse && animator.AnyStateTransitionCount > settings.AnyStateTransitionThreshold)
                 {
+                    animator.AddWarning("Animator '" + animator.Name + "' has " + animator.AnyStateTransitionCount + " AnyState transitions (threshold: " + settings.AnyStateTransitionThreshold + ").");
                     issues.Add(MakeIssue("anystate_overuse",
                         "Animator '" + animator.Name + "' has " + animator.AnyStateTransitionCount + " AnyState transitions (threshold: " + settings.AnyStateTransitionThreshold + ").",
                         UnityScannerIssueSeverity.Warning, animator.Path));
@@ -57,6 +62,7 @@ namespace UnityScanner.Categories.AnimationAnalysis
                 {
                     foreach (var state in animator.UnreachableStates)
                     {
+                        animator.AddWarning("Animator '" + animator.Name + "' has unreachable state: '" + state + "'.");
                         issues.Add(MakeIssue("unreachable_state",
                             "Animator '" + animator.Name + "' has unreachable state: '" + state + "'.",
                             UnityScannerIssueSeverity.Warning, animator.Path));
@@ -67,6 +73,7 @@ namespace UnityScanner.Categories.AnimationAnalysis
                 {
                     foreach (var mismatch in animator.ParameterMismatches)
                     {
+                        animator.AddInfo("Animator '" + animator.Name + "': " + mismatch);
                         issues.Add(MakeIssue("parameter_mismatch",
                             "Animator '" + animator.Name + "': " + mismatch,
                             UnityScannerIssueSeverity.Info, animator.Path));
@@ -80,6 +87,7 @@ namespace UnityScanner.Categories.AnimationAnalysis
                 {
                     if (clip.KeyframeDensity > settings.CurveKeyframeDensityThreshold)
                     {
+                        clip.AddInfo("Clip '" + clip.Name + "' has high keyframe density (" + clip.KeyframeDensity + " kf/s, threshold: " + settings.CurveKeyframeDensityThreshold + ").");
                         issues.Add(MakeIssue("expensive_curves_density",
                             "Clip '" + clip.Name + "' has high keyframe density (" + clip.KeyframeDensity + " kf/s, threshold: " + settings.CurveKeyframeDensityThreshold + ").",
                             UnityScannerIssueSeverity.Info, clip.Path));
@@ -87,6 +95,7 @@ namespace UnityScanner.Categories.AnimationAnalysis
 
                     if (clip.CurveCount > settings.CurveCountThreshold)
                     {
+                        clip.AddInfo("Clip '" + clip.Name + "' has " + clip.CurveCount + " curves (threshold: " + settings.CurveCountThreshold + ").");
                         issues.Add(MakeIssue("expensive_curves_count",
                             "Clip '" + clip.Name + "' has " + clip.CurveCount + " curves (threshold: " + settings.CurveCountThreshold + ").",
                             UnityScannerIssueSeverity.Info, clip.Path));
@@ -95,6 +104,7 @@ namespace UnityScanner.Categories.AnimationAnalysis
 
                 if (settings.DetectDuplicateClips && clip.IsDuplicate && clip.DuplicatePaths.Count > 0)
                 {
+                    clip.AddInfo("Duplicate animation clip '" + clip.Name + "' matches " + clip.DuplicatePaths.Count + " other clip(s).");
                     issues.Add(MakeIssue("duplicate_clip",
                         "Duplicate animation clip '" + clip.Name + "' matches " + clip.DuplicatePaths.Count + " other clip(s).",
                         UnityScannerIssueSeverity.Info, clip.Path));

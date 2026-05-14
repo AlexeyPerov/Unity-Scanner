@@ -136,6 +136,8 @@ namespace UnityScanner.Categories.LightingAnalysis
             EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
             if (GUILayout.Button(new GUIContent(isExpanded ? "v" : ">", "Expand/collapse"), EditorStyles.miniButton, GUILayout.Width(18)))
                 _expandedRow = isExpanded ? -1 : idx;
+            var sevColor = d.WarningLevel switch { >= 3 => Color.red, 2 => Color.yellow, 1 => Color.cyan, _ => Color.white };
+            USGUIUtilities.DrawColoredLabel(USGUIUtilities.GetSeverityTag(d.WarningLevel), sevColor, 75);
             var rtColor = d.RealtimeLightCount > 8 ? Color.yellow : Color.white;
             USGUIUtilities.DrawColoredLabel("RT:" + d.RealtimeLightCount, rtColor, 50);
             EditorGUILayout.LabelField(idx.ToString(), GUILayout.Width(30));
@@ -157,6 +159,7 @@ namespace UnityScanner.Categories.LightingAnalysis
                 }
                 if (d.Lights.Count > 15)
                     GUILayout.Label("  ... and " + (d.Lights.Count - 15) + " more", EditorStyles.miniLabel);
+                USGUIUtilities.DrawCustomWarnings(d);
                 EditorGUILayout.EndVertical();
                 EditorGUI.indentLevel--;
             }
@@ -165,6 +168,8 @@ namespace UnityScanner.Categories.LightingAnalysis
         private void DrawBakingRow(SceneLightingData d, int idx)
         {
             EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
+            var sevColor = d.WarningLevel switch { >= 3 => Color.red, 2 => Color.yellow, 1 => Color.cyan, _ => Color.white };
+            USGUIUtilities.DrawColoredLabel(USGUIUtilities.GetSeverityTag(d.WarningLevel), sevColor, 75);
             GUILayout.Label("LM:" + d.LightmapCount + " Size:" + d.LightmapSize, EditorStyles.miniLabel, GUILayout.Width(140));
             if (!string.IsNullOrEmpty(d.ScenePath))
                 USGUIUtilities.DrawAssetButton(d.ScenePath, 250f, 18f);
@@ -177,6 +182,8 @@ namespace UnityScanner.Categories.LightingAnalysis
             EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
             if (GUILayout.Button(new GUIContent(isExpanded ? "v" : ">", "Expand/collapse"), EditorStyles.miniButton, GUILayout.Width(18)))
                 _expandedRow = isExpanded ? -1 : idx;
+            var sevColor = d.WarningLevel switch { >= 3 => Color.red, 2 => Color.yellow, 1 => Color.cyan, _ => Color.white };
+            USGUIUtilities.DrawColoredLabel(USGUIUtilities.GetSeverityTag(d.WarningLevel), sevColor, 75);
             var probeColor = d.ReflectionProbeCount > 4 ? Color.yellow : Color.white;
             USGUIUtilities.DrawColoredLabel("RP:" + d.ReflectionProbeCount, probeColor, 45);
             var lpColor = !d.HasLightProbes && (d.RealtimeLightCount + d.MixedLightCount > 0) ? Color.red : Color.green;
@@ -190,6 +197,7 @@ namespace UnityScanner.Categories.LightingAnalysis
                 EditorGUILayout.BeginVertical(EditorStyles.helpBox);
                 GUILayout.Label("Reflection probes: " + d.ReflectionProbeCount + " | Max resolution: " + d.MaxReflectionProbeResolution, EditorStyles.miniLabel);
                 GUILayout.Label("Light probes: " + (d.HasLightProbes ? "Present" : "Missing"), EditorStyles.miniLabel);
+                USGUIUtilities.DrawCustomWarnings(d);
                 EditorGUILayout.EndVertical();
                 EditorGUI.indentLevel--;
             }
@@ -202,6 +210,8 @@ namespace UnityScanner.Categories.LightingAnalysis
             EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
             if (GUILayout.Button(new GUIContent(isExpanded ? "v" : ">", "Expand/collapse"), EditorStyles.miniButton, GUILayout.Width(18)))
                 _expandedRow = isExpanded ? -1 : idx;
+            var sevColor = d.WarningLevel switch { >= 3 => Color.red, 2 => Color.yellow, 1 => Color.cyan, _ => Color.white };
+            USGUIUtilities.DrawColoredLabel(USGUIUtilities.GetSeverityTag(d.WarningLevel), sevColor, 75);
             USGUIUtilities.DrawColoredLabel("EM:" + d.EmissiveMaterials.Count, Color.cyan, 45);
             EditorGUILayout.LabelField(idx.ToString(), GUILayout.Width(30));
             EditorGUILayout.EndHorizontal();
@@ -211,6 +221,7 @@ namespace UnityScanner.Categories.LightingAnalysis
                 EditorGUILayout.BeginVertical(EditorStyles.helpBox);
                 foreach (var em in d.EmissiveMaterials)
                     GUILayout.Label(em.MaterialName + " — Flags: " + em.GlobalIlluminationFlags + " | " + em.MaterialPath, EditorStyles.miniLabel);
+                USGUIUtilities.DrawCustomWarnings(d);
                 EditorGUILayout.EndVertical();
                 EditorGUI.indentLevel--;
             }

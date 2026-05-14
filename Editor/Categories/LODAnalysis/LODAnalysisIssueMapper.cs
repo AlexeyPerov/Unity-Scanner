@@ -20,6 +20,7 @@ namespace UnityScanner.Categories.LODAnalysis
             {
                 if (settings.CheckMissingLevels && data.LODLevelCount < profile.MinLODLevels)
                 {
+                    data.AddWarning("LOD group has " + data.LODLevelCount + " levels, minimum is " + profile.MinLODLevels + ".");
                     issues.Add(MakeIssue("lod_missing_levels",
                         "LOD group has " + data.LODLevelCount + " levels, minimum is " + profile.MinLODLevels + ".",
                         UnityScannerIssueSeverity.Warning, data.AssetPath,
@@ -33,6 +34,7 @@ namespace UnityScanner.Categories.LODAnalysis
                     {
                         if (level.HasNullRenderers)
                         {
+                            data.AddError("LOD level " + level.LevelIndex + " has " + level.NullRendererCount + " null renderer(s).");
                             issues.Add(MakeIssue("lod_null_renderers",
                                 "LOD level " + level.LevelIndex + " has " + level.NullRendererCount + " null renderer(s).",
                                 UnityScannerIssueSeverity.Error, data.AssetPath,
@@ -49,6 +51,8 @@ namespace UnityScanner.Categories.LODAnalysis
                     {
                         if (level.RendererCount != lod0Count && level.ScreenTransitionHeight > 0f)
                         {
+                            data.AddWarning("LOD level " + level.LevelIndex + " has " + level.RendererCount +
+                                " renderers vs LOD0's " + lod0Count + ".");
                             issues.Add(MakeIssue("lod_renderer_count_mismatch",
                                 "LOD level " + level.LevelIndex + " has " + level.RendererCount +
                                 " renderers vs LOD0's " + lod0Count + ".",
@@ -68,6 +72,8 @@ namespace UnityScanner.Categories.LODAnalysis
                         var lod0Tris = data.Levels[0].TriangleCount;
                         if (lod0Tris > 0 && lastVisible.TriangleCount > lod0Tris * 0.5f)
                         {
+                            data.AddWarning("Last visible LOD level " + lastVisible.LevelIndex + " has " +
+                                lastVisible.TriangleCount + " triangles (LOD0: " + lod0Tris + ").");
                             issues.Add(MakeIssue("lod_last_level_complex",
                                 "Last visible LOD level " + lastVisible.LevelIndex + " has " +
                                 lastVisible.TriangleCount + " triangles (LOD0: " + lod0Tris + ").",
@@ -86,6 +92,7 @@ namespace UnityScanner.Categories.LODAnalysis
                         if (level.ScreenTransitionHeight <= 0f) continue;
                         if (level.MaterialNames.Count > 0 && !lod0Materials.SetEquals(level.MaterialNames))
                         {
+                            data.AddWarning("LOD level " + level.LevelIndex + " uses different materials than LOD0.");
                             issues.Add(MakeIssue("lod_material_mismatch",
                                 "LOD level " + level.LevelIndex + " uses different materials than LOD0.",
                                 UnityScannerIssueSeverity.Warning, data.AssetPath,
@@ -107,6 +114,9 @@ namespace UnityScanner.Categories.LODAnalysis
                         var diff = a.ScreenTransitionHeight - b.ScreenTransitionHeight;
                         if (diff > 0f && diff < 0.05f)
                         {
+                            data.AddInfo("LOD levels " + a.LevelIndex + " and " + b.LevelIndex +
+                                " transition heights too close: " + a.ScreenTransitionHeight.ToString("F3") +
+                                " vs " + b.ScreenTransitionHeight.ToString("F3") + ".");
                             issues.Add(MakeIssue("lod_transition_too_close",
                                 "LOD levels " + a.LevelIndex + " and " + b.LevelIndex +
                                 " transition heights too close: " + a.ScreenTransitionHeight.ToString("F3") +
@@ -122,6 +132,7 @@ namespace UnityScanner.Categories.LODAnalysis
 
                 if (settings.CheckNoCrossfade && !data.AnimateCrossFading && data.LODLevelCount > 2)
                 {
+                    data.AddInfo("LOD group with " + data.LODLevelCount + " levels does not use cross-fade. FadeMode: " + (LODFadeMode)data.FadeMode + ".");
                     issues.Add(MakeIssue("lod_no_crossfade",
                         "LOD group with " + data.LODLevelCount + " levels does not use cross-fade. FadeMode: " + (LODFadeMode)data.FadeMode + ".",
                         UnityScannerIssueSeverity.Info, data.AssetPath,

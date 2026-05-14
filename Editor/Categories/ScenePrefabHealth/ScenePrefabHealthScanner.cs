@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -13,23 +14,25 @@ namespace UnityScanner.Categories.ScenePrefabHealth
 {
     public static class ScenePrefabHealthScanner
     {
-        public static void ScanAll(
+        public static IEnumerator ScanAll(
             ScenePrefabHealthSettings settings,
             PlatformProfile profile,
             List<SceneData> scenes,
             List<PrefabData> prefabs,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            int yieldInterval)
         {
-            ScanScenes(settings, profile, scenes, issueSink);
-            ScanPrefabs(settings, profile, prefabs, issueSink);
+            yield return ScanScenes(settings, profile, scenes, issueSink, yieldInterval);
+            yield return ScanPrefabs(settings, profile, prefabs, issueSink, yieldInterval);
             GC.Collect();
         }
 
-        private static void ScanScenes(
+        private static IEnumerator ScanScenes(
             ScenePrefabHealthSettings settings,
             PlatformProfile profile,
             List<SceneData> scenes,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            int yieldInterval)
         {
             var sceneGuids = AssetDatabase.FindAssets("t:Scene");
             var total = sceneGuids.Length;
@@ -39,6 +42,13 @@ namespace UnityScanner.Categories.ScenePrefabHealth
             {
                 if (i % 5 == 0)
                     issueSink.ReportProgress((float)i / total * 0.6f, "Scanning scenes...");
+
+                if (yieldInterval > 0 && i > 0 && i % yieldInterval == 0)
+                {
+                    System.GC.Collect();
+                    yield return 0.05f;
+                    System.GC.Collect();
+                }
 
                 var scenePath = AssetDatabase.GUIDToAssetPath(sceneGuids[i]);
                 if (scenePath.StartsWith("Packages/") || scenePath.StartsWith("Library/"))
@@ -153,11 +163,12 @@ namespace UnityScanner.Categories.ScenePrefabHealth
             return data;
         }
 
-        private static void ScanPrefabs(
+        private static IEnumerator ScanPrefabs(
             ScenePrefabHealthSettings settings,
             PlatformProfile profile,
             List<PrefabData> prefabs,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            int yieldInterval)
         {
             var prefabGuids = AssetDatabase.FindAssets("t:Prefab");
             var total = prefabGuids.Length;
@@ -166,6 +177,13 @@ namespace UnityScanner.Categories.ScenePrefabHealth
             {
                 if (i % 50 == 0)
                     issueSink.ReportProgress(0.6f + (float)i / total * 0.35f, "Scanning prefabs...");
+
+                if (yieldInterval > 0 && i > 0 && i % yieldInterval == 0)
+                {
+                    System.GC.Collect();
+                    yield return 0.05f;
+                    System.GC.Collect();
+                }
 
                 var prefabPath = AssetDatabase.GUIDToAssetPath(prefabGuids[i]);
                 if (prefabPath.StartsWith("Packages/") || prefabPath.StartsWith("Library/"))

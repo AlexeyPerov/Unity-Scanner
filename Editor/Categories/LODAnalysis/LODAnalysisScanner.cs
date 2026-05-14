@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityScanner.Core.Issues;
@@ -10,23 +11,28 @@ namespace UnityScanner.Categories.LODAnalysis
 {
     public static class LODAnalysisScanner
     {
-        public static void ScanAll(
+        public static IEnumerator ScanAll(
             LODAnalysisSettings settings,
             PlatformProfile profile,
             List<LODGroupData> results,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            int yieldInterval)
         {
-            if (profile == null) return;
+            if (profile == null) yield break;
 
-            ScanAssetLODGroups(settings, profile, results, issueSink);
-            ScanSceneLODGroups(settings, profile, results, issueSink);
+            var e1 = ScanAssetLODGroups(settings, profile, results, issueSink, yieldInterval);
+            while (e1.MoveNext()) yield return e1.Current;
+
+            var e2 = ScanSceneLODGroups(settings, profile, results, issueSink, yieldInterval);
+            while (e2.MoveNext()) yield return e2.Current;
         }
 
-        private static void ScanAssetLODGroups(
+        private static IEnumerator ScanAssetLODGroups(
             LODAnalysisSettings settings,
             PlatformProfile profile,
             List<LODGroupData> results,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            int yieldInterval)
         {
             issueSink.ReportProgress(0f, "Scanning prefabs for LOD groups...");
 
@@ -35,6 +41,13 @@ namespace UnityScanner.Categories.LODAnalysis
 
             for (var i = 0; i < prefabGuids.Length; i++)
             {
+                if (yieldInterval > 0 && i > 0 && i % yieldInterval == 0)
+                {
+                    System.GC.Collect();
+                    yield return 0.05f;
+                    System.GC.Collect();
+                }
+
                 if (i % 100 == 0)
                     issueSink.ReportProgress((float)i / total * 0.5f, "Scanning prefabs for LOD groups...");
 
@@ -56,11 +69,12 @@ namespace UnityScanner.Categories.LODAnalysis
             }
         }
 
-        private static void ScanSceneLODGroups(
+        private static IEnumerator ScanSceneLODGroups(
             LODAnalysisSettings settings,
             PlatformProfile profile,
             List<LODGroupData> results,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            int yieldInterval)
         {
             issueSink.ReportProgress(0.5f, "Scanning scenes for LOD groups...");
 
@@ -69,6 +83,13 @@ namespace UnityScanner.Categories.LODAnalysis
 
             for (var i = 0; i < sceneGuids.Length; i++)
             {
+                if (yieldInterval > 0 && i > 0 && i % yieldInterval == 0)
+                {
+                    System.GC.Collect();
+                    yield return 0.05f;
+                    System.GC.Collect();
+                }
+
                 if (i % 50 == 0)
                     issueSink.ReportProgress(0.5f + (float)i / total * 0.5f, "Scanning scenes for LOD groups...");
 

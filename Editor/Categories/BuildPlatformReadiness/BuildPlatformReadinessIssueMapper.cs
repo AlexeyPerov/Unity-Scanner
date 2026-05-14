@@ -27,6 +27,7 @@ namespace UnityScanner.Categories.BuildPlatformReadiness
                     if (v.ViolationType == "compression_mismatch" || v.ViolationType == "audio_load_mismatch")
                         severity = UnityScannerIssueSeverity.Info;
 
+                    if (severity == UnityScannerIssueSeverity.Warning) v.AddWarning("[" + profileName + "] " + v.Description); else v.AddInfo("[" + profileName + "] " + v.Description);
                     issues.Add(MakeIssue("import_policy_violation",
                         "[" + profileName + "] " + v.Description,
                         severity, v.AssetPath));
@@ -37,6 +38,7 @@ namespace UnityScanner.Categories.BuildPlatformReadiness
             {
                 foreach (var inc in incompatibilities)
                 {
+                    inc.AddWarning("[" + profileName + "] " + inc.Description);
                     issues.Add(MakeIssue("platform_incompatibility",
                         "[" + profileName + "] " + inc.Description,
                         UnityScannerIssueSeverity.Warning, inc.AssetPath));
@@ -47,6 +49,7 @@ namespace UnityScanner.Categories.BuildPlatformReadiness
             {
                 foreach (var risk in strippingRisks)
                 {
+                        risk.AddWarning("Stripping risk in '" + risk.ScriptName + "': " + risk.Description);
                     issues.Add(MakeIssue("stripping_risk",
                         "Stripping risk in '" + risk.ScriptName + "': " + risk.Description,
                         UnityScannerIssueSeverity.Warning, risk.ScriptPath));
@@ -59,12 +62,14 @@ namespace UnityScanner.Categories.BuildPlatformReadiness
                 {
                     if (budget.PercentUsed > 100f)
                     {
+                        budget.AddError("[" + profileName + "] " + budget.Category + " budget exceeded. " + budget.Description);
                         issues.Add(MakeIssue("startup_budget_exceeded",
                             "[" + profileName + "] " + budget.Category + " budget exceeded. " + budget.Description,
                             UnityScannerIssueSeverity.Error, ""));
                     }
                     else if (budget.PercentUsed > 80f)
                     {
+                        budget.AddWarning("[" + profileName + "] " + budget.Category + " budget near limit. " + budget.Description);
                         issues.Add(MakeIssue("startup_budget_warning",
                             "[" + profileName + "] " + budget.Category + " budget near limit. " + budget.Description,
                             UnityScannerIssueSeverity.Warning, ""));

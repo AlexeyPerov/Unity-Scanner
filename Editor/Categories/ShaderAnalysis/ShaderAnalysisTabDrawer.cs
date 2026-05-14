@@ -305,18 +305,7 @@ namespace UnityScanner.Categories.ShaderAnalysis
                 EditorGUI.indentLevel--;
             }
 
-            if (shader.CustomWarnings != null && shader.CustomWarnings.Count > 0)
-            {
-                GUILayout.Space(3);
-                var prev = GUI.color;
-                GUI.color = Color.yellow;
-                GUILayout.Label($"Warnings ({shader.CustomWarnings.Count}):", EditorStyles.boldLabel);
-                GUI.color = prev;
-                EditorGUI.indentLevel++;
-                foreach (var w in shader.CustomWarnings)
-                    USGUIUtilities.DrawColoredLabel("• " + w, Color.yellow);
-                EditorGUI.indentLevel--;
-            }
+            USGUIUtilities.DrawCustomWarnings(shader);
 
             EditorGUILayout.EndVertical();
             EditorGUI.indentLevel--;
@@ -395,18 +384,7 @@ namespace UnityScanner.Categories.ShaderAnalysis
                 EditorGUI.indentLevel--;
             }
 
-            if (mat.CustomWarnings != null && mat.CustomWarnings.Count > 0)
-            {
-                GUILayout.Space(3);
-                var prev = GUI.color;
-                GUI.color = Color.yellow;
-                GUILayout.Label($"Warnings ({mat.CustomWarnings.Count}):", EditorStyles.boldLabel);
-                GUI.color = prev;
-                EditorGUI.indentLevel++;
-                foreach (var w in mat.CustomWarnings)
-                    USGUIUtilities.DrawColoredLabel("• " + w, Color.yellow);
-                EditorGUI.indentLevel--;
-            }
+            USGUIUtilities.DrawCustomWarnings(mat);
 
             EditorGUILayout.EndVertical();
             EditorGUI.indentLevel--;

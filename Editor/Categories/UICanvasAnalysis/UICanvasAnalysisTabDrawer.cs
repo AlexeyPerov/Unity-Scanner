@@ -153,6 +153,8 @@ namespace UnityScanner.Categories.UICanvasAnalysis
             EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
             if (GUILayout.Button(new GUIContent(isExpanded ? "v" : ">", "Expand/collapse"), EditorStyles.miniButton, GUILayout.Width(18)))
                 _expandedRow = isExpanded ? -1 : idx;
+            var sevColor = d.WarningLevel switch { >= 3 => Color.red, 2 => Color.yellow, 1 => Color.cyan, _ => Color.white };
+            USGUIUtilities.DrawColoredLabel(USGUIUtilities.GetSeverityTag(d.WarningLevel), sevColor, 75);
             var vColor = d.VertexCount > 10000 ? Color.yellow : Color.white;
             USGUIUtilities.DrawColoredLabel("V:" + d.VertexCount, vColor, 55);
             EditorGUILayout.LabelField(idx.ToString(), GUILayout.Width(30));
@@ -171,6 +173,7 @@ namespace UnityScanner.Categories.UICanvasAnalysis
                 if (!string.IsNullOrEmpty(d.EnabledChannels) && d.EnabledChannels != "None")
                 { var prev = GUI.color; GUI.color = Color.cyan; GUILayout.Label("Unused shader channels: " + d.EnabledChannels + " (used: " + (d.UsedChannels ?? "None") + ")", EditorStyles.miniLabel); GUI.color = prev; }
                 GUILayout.Label("Unpacked sprites: " + d.UnpackedSpriteCount, EditorStyles.miniLabel);
+                USGUIUtilities.DrawCustomWarnings(d);
                 EditorGUILayout.EndVertical();
                 EditorGUI.indentLevel--;
             }
@@ -183,6 +186,8 @@ namespace UnityScanner.Categories.UICanvasAnalysis
             EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
             if (GUILayout.Button(new GUIContent(isExpanded ? "v" : ">", "Expand/collapse"), EditorStyles.miniButton, GUILayout.Width(18)))
                 _expandedRow = isExpanded ? -1 : idx;
+            var sevColor = d.WarningLevel switch { >= 3 => Color.red, 2 => Color.yellow, 1 => Color.cyan, _ => Color.white };
+            USGUIUtilities.DrawColoredLabel(USGUIUtilities.GetSeverityTag(d.WarningLevel), sevColor, 75);
             USGUIUtilities.DrawColoredLabel("RT:" + d.UnnecessaryRaycastCount, Color.yellow, 50);
             EditorGUILayout.LabelField(idx.ToString(), GUILayout.Width(30));
             if (!string.IsNullOrEmpty(d.ScenePath))
@@ -198,6 +203,7 @@ namespace UnityScanner.Categories.UICanvasAnalysis
                     GUILayout.Label("  " + rt.ComponentType + " — " + rt.ObjectPath, EditorStyles.miniLabel);
                 if (d.UnnecessaryRaycasts.Count > 20)
                     GUILayout.Label("  ... and " + (d.UnnecessaryRaycasts.Count - 20) + " more", EditorStyles.miniLabel);
+                USGUIUtilities.DrawCustomWarnings(d);
                 EditorGUILayout.EndVertical();
                 EditorGUI.indentLevel--;
             }
@@ -207,6 +213,8 @@ namespace UnityScanner.Categories.UICanvasAnalysis
         {
             if (d.LayoutNestingDepth <= 1) return;
             EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
+            var sevColor = d.WarningLevel switch { >= 3 => Color.red, 2 => Color.yellow, 1 => Color.cyan, _ => Color.white };
+            USGUIUtilities.DrawColoredLabel(USGUIUtilities.GetSeverityTag(d.WarningLevel), sevColor, 75);
             var depthColor = d.LayoutNestingDepth > 5 ? Color.yellow : Color.white;
             USGUIUtilities.DrawColoredLabel("D:" + d.LayoutNestingDepth, depthColor, 35);
             EditorGUILayout.LabelField(idx.ToString(), GUILayout.Width(30));
@@ -222,6 +230,8 @@ namespace UnityScanner.Categories.UICanvasAnalysis
             if (d.LegacyTextCount == 0 && d.TmpTextCount == 0) return;
             var hasMix = d.LegacyTextCount > 0 && d.TmpTextCount > 0;
             EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
+            var sevColor = d.WarningLevel switch { >= 3 => Color.red, 2 => Color.yellow, 1 => Color.cyan, _ => Color.white };
+            USGUIUtilities.DrawColoredLabel(USGUIUtilities.GetSeverityTag(d.WarningLevel), sevColor, 75);
             if (hasMix) USGUIUtilities.DrawColoredLabel("MIX", Color.yellow, 35);
             else GUILayout.Label("", GUILayout.Width(35));
             EditorGUILayout.LabelField(idx.ToString(), GUILayout.Width(30));

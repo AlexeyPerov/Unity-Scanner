@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,11 +12,12 @@ namespace UnityScanner.Categories.FontTextAnalysis
 {
     public static class FontTextAnalysisScanner
     {
-        public static void ScanAll(
+        public static IEnumerator ScanAll(
             FontTextAnalysisSettings settings,
             PlatformProfile profile,
             List<FontAssetData> fonts,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            int yieldInterval)
         {
             var maxAtlas = profile?.MaxTmpAtlasSize ?? settings.MaxAtlasSize;
             var maxDepth = profile?.MaxFallbackChainDepth ?? settings.MaxFallbackChainDepth;
@@ -27,6 +29,13 @@ namespace UnityScanner.Categories.FontTextAnalysis
             {
                 if (i % 50 == 0)
                     issueSink.ReportProgress((float)i / total, "Scanning TMP fonts...");
+
+                if (yieldInterval > 0 && i > 0 && i % yieldInterval == 0)
+                {
+                    System.GC.Collect();
+                    yield return 0.05f;
+                    System.GC.Collect();
+                }
 
                 var fontPath = AssetDatabase.GUIDToAssetPath(tmpFontGuids[i]);
                 if (!string.IsNullOrEmpty(settings.PathFilter) && !fontPath.Contains(settings.PathFilter))
@@ -44,6 +53,13 @@ namespace UnityScanner.Categories.FontTextAnalysis
             for (var i = 0; i < unityFontGuids.Length; i++)
             {
                 issueSink.ReportProgress(0.7f + (float)i / (unityFontGuids.Length + 1) * 0.2f, "Scanning Unity fonts...");
+
+                if (yieldInterval > 0 && i > 0 && i % yieldInterval == 0)
+                {
+                    System.GC.Collect();
+                    yield return 0.05f;
+                    System.GC.Collect();
+                }
 
                 var fontPath = AssetDatabase.GUIDToAssetPath(unityFontGuids[i]);
                 if (!string.IsNullOrEmpty(settings.PathFilter) && !fontPath.Contains(settings.PathFilter))

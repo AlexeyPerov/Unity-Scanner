@@ -150,6 +150,7 @@ namespace UnityScanner.Categories.TerrainAnalysis
             GUILayout.Label($"Heightmap Resolution: {t.HeightmapResolution}", EditorStyles.miniLabel);
             if (t.HasColliderMismatch) USGUIUtilities.DrawColoredLabel("COLLIDER DATA MISMATCH", Color.red, 160);
             if (t.HasExpensiveSettings) USGUIUtilities.DrawColoredLabel("Expensive settings for platform", Color.yellow);
+            USGUIUtilities.DrawCustomWarnings(t);
             EditorGUILayout.EndVertical();
             EditorGUI.indentLevel--;
         }

@@ -259,6 +259,7 @@ namespace UnityScanner.Categories.BuildPlatformReadiness
                     GUILayout.Label("Fix: " + v.RecommendedFix, EditorStyles.wordWrappedMiniLabel);
                     GUI.color = prev;
                 }
+                USGUIUtilities.DrawCustomWarnings(v);
                 EditorGUILayout.EndVertical();
                 EditorGUI.indentLevel--;
             }
@@ -293,6 +294,7 @@ namespace UnityScanner.Categories.BuildPlatformReadiness
                     GUILayout.Label("Fix: " + inc.RecommendedFix, EditorStyles.wordWrappedMiniLabel);
                     GUI.color = prev;
                 }
+                USGUIUtilities.DrawCustomWarnings(inc);
                 EditorGUILayout.EndVertical();
                 EditorGUI.indentLevel--;
             }
@@ -326,6 +328,7 @@ namespace UnityScanner.Categories.BuildPlatformReadiness
                     GUILayout.Label("Fix: " + risk.RecommendedFix, EditorStyles.wordWrappedMiniLabel);
                     GUI.color = prev;
                 }
+                USGUIUtilities.DrawCustomWarnings(risk);
                 EditorGUILayout.EndVertical();
                 EditorGUI.indentLevel--;
             }
@@ -365,6 +368,7 @@ namespace UnityScanner.Categories.BuildPlatformReadiness
                 GUI.color = prev;
                 EditorGUILayout.EndHorizontal();
             }
+            USGUIUtilities.DrawCustomWarnings(budget);
         }
 
         private void ExportToClipboard()

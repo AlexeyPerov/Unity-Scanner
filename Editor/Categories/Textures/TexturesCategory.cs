@@ -5,13 +5,14 @@ using System.Linq;
 using UnityScanner.Core.Categories;
 using UnityScanner.Core.Issues;
 using UnityScanner.Utilities.BuildLayout;
+using UnityEditor;
 
 namespace UnityScanner.Categories.Textures
 {
     public class TexturesCategory : IUnityScannerCategory
     {
         public string Id => "textures";
-        public string DisplayName => "Textures and Atalses";
+        public string DisplayName => "Textures Compression";
         public string ShortDisplayName => "Textures";
         public UnityScannerCategorySettings Settings => _settings;
         public ScanCapabilities Capabilities => ScanCapabilities.ScanAll |
@@ -35,7 +36,16 @@ namespace UnityScanner.Categories.Textures
             issueSink.ReportProgress(0f, "Scanning textures and atlases...");
             yield return null;
 
-            var (atlases, textures) = TexturesScanner.ScanAll(settings, buildLayout, issueSink);
+            var yieldInterval = USCoroutineHelper.ComputeYieldInterval(
+                AssetDatabase.GetAllAssetPaths().Length,
+                context?.Settings?.YieldAssetThreshold ?? 5000,
+                context?.Settings?.YieldIntervalDivisor ?? 10);
+
+            var atlases = new List<AtlasData>();
+            var textures = new List<TextureData>();
+            var enumerator = TexturesScanner.ScanAll(settings, buildLayout, issueSink, atlases, textures, yieldInterval);
+            while (enumerator.MoveNext())
+                yield return enumerator.Current;
 
             LastAtlases = atlases;
             LastTextures = textures;

@@ -150,6 +150,7 @@ namespace UnityScanner.Categories.AsmDefAudit
                     GUILayout.Label("  -> " + r, EditorStyles.miniLabel);
                 if (d.References.Count > 20)
                     GUILayout.Label("  ... and " + (d.References.Count - 20) + " more", EditorStyles.miniLabel);
+                USGUIUtilities.DrawCustomWarnings(d);
                 EditorGUILayout.EndVertical();
                 EditorGUI.indentLevel--;
             }

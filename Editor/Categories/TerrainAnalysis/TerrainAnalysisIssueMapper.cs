@@ -30,6 +30,7 @@ namespace UnityScanner.Categories.TerrainAnalysis
             {
                 if (settings.DetectColliderMismatches && terrain.HasColliderMismatch)
                 {
+                    terrain.AddError($"Terrain collider data mismatch at '{terrain.Name}'.");
                     issues.Add(MakeIssue(CodeColliderMismatch,
                         $"Terrain collider data mismatch at '{terrain.Name}'.",
                         UnityScannerIssueSeverity.Error, terrain.Path));
@@ -37,6 +38,7 @@ namespace UnityScanner.Categories.TerrainAnalysis
 
                 if (settings.DetectMissingLayers && terrain.MissingLayerCount > 0)
                 {
+                    terrain.AddError($"Terrain '{terrain.Name}' has {terrain.MissingLayerCount} missing layer(s): {string.Join(", ", terrain.MissingLayerNames)}.");
                     issues.Add(MakeIssue(CodeMissingLayer,
                         $"Terrain '{terrain.Name}' has {terrain.MissingLayerCount} missing layer(s): {string.Join(", ", terrain.MissingLayerNames)}.",
                         UnityScannerIssueSeverity.Error, terrain.Path,
@@ -48,7 +50,8 @@ namespace UnityScanner.Categories.TerrainAnalysis
                     var controlMB = terrain.ControlMapMemoryBytes / (1024.0 * 1024.0);
                     if (controlMB > controlBudgetMB)
                     {
-                        issues.Add(MakeIssue(CodeControlMapOverBudget,
+                            terrain.AddWarning($"Terrain '{terrain.Name}' control map memory ({controlMB:F1} MB) exceeds budget ({controlBudgetMB} MB).");
+                            issues.Add(MakeIssue(CodeControlMapOverBudget,
                             $"Terrain '{terrain.Name}' control map memory ({controlMB:F1} MB) exceeds budget ({controlBudgetMB} MB).",
                             UnityScannerIssueSeverity.Warning, terrain.Path,
                             "actual_mb", controlMB.ToString("F1"),
@@ -59,7 +62,8 @@ namespace UnityScanner.Categories.TerrainAnalysis
                     {
                         if (texSize > textureBudget)
                         {
-                            issues.Add(MakeIssue(CodeTextureOverBudget,
+                                terrain.AddWarning($"Terrain '{terrain.Name}' alphamap texture size ({texSize}) exceeds budget ({textureBudget}).");
+                                issues.Add(MakeIssue(CodeTextureOverBudget,
                                 $"Terrain '{terrain.Name}' alphamap texture size ({texSize}) exceeds budget ({textureBudget}).",
                                 UnityScannerIssueSeverity.Warning, terrain.Path,
                                 "actual_size", texSize,
@@ -73,7 +77,8 @@ namespace UnityScanner.Categories.TerrainAnalysis
                 {
                     if (terrain.TreeCount > treeBudget)
                     {
-                        issues.Add(MakeIssue(CodeTreeDensityOverBudget,
+                            terrain.AddInfo($"Terrain '{terrain.Name}' tree count ({terrain.TreeCount}) exceeds budget ({treeBudget}).");
+                            issues.Add(MakeIssue(CodeTreeDensityOverBudget,
                             $"Terrain '{terrain.Name}' tree count ({terrain.TreeCount}) exceeds budget ({treeBudget}).",
                             UnityScannerIssueSeverity.Info, terrain.Path,
                             "actual_count", terrain.TreeCount,
@@ -82,7 +87,8 @@ namespace UnityScanner.Categories.TerrainAnalysis
 
                     if (terrain.DetailCount > detailBudget)
                     {
-                        issues.Add(MakeIssue(CodeDetailDensityOverBudget,
+                            terrain.AddInfo($"Terrain '{terrain.Name}' detail count ({terrain.DetailCount}) exceeds budget ({detailBudget}).");
+                            issues.Add(MakeIssue(CodeDetailDensityOverBudget,
                             $"Terrain '{terrain.Name}' detail count ({terrain.DetailCount}) exceeds budget ({detailBudget}).",
                             UnityScannerIssueSeverity.Info, terrain.Path,
                             "actual_count", terrain.DetailCount,
@@ -92,6 +98,7 @@ namespace UnityScanner.Categories.TerrainAnalysis
 
                 if (settings.DetectExpensiveSettings && terrain.HasExpensiveSettings)
                 {
+                    terrain.AddInfo($"Terrain '{terrain.Name}' uses expensive settings for selected platform profile.");
                     issues.Add(MakeIssue(CodeExpensiveSettings,
                         $"Terrain '{terrain.Name}' uses expensive settings for selected platform profile.",
                         UnityScannerIssueSeverity.Info, terrain.Path));

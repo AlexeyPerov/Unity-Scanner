@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -16,11 +17,12 @@ namespace UnityScanner.Categories.MissingReferences
 {
     public static class MissingReferencesScanner
     {
-        public static List<MissingRefAssetData> ScanAllAssets(
+        public static IEnumerator ScanAllAssets(
             MissingReferencesSettings settings,
-            IUnityScannerIssueSink issueSink)
+            IUnityScannerIssueSink issueSink,
+            List<MissingRefAssetData> results,
+            int yieldInterval)
         {
-            var result = new List<MissingRefAssetData>();
             var allGuids = new HashSet<string>();
             var allFileIDs = new HashSet<long>();
 
@@ -38,6 +40,13 @@ namespace UnityScanner.Categories.MissingReferences
 
             for (var assetIndex = 0; assetIndex < totalAssets; assetIndex++)
             {
+                if (yieldInterval > 0 && assetIndex > 0 && assetIndex % yieldInterval == 0)
+                {
+                    System.GC.Collect();
+                    yield return 0.05f;
+                    System.GC.Collect();
+                }
+
                 if (assetIndex % 20000 == 0)
                 {
                     issueSink.ReportProgress((float)assetIndex / totalAssets, "Scanning for missing references");
@@ -156,11 +165,10 @@ namespace UnityScanner.Categories.MissingReferences
                     ScanDuplicateComponents(assetPath, refsData);
 
                 var typeName = USAssetTypeUtilities.GetReadableTypeName(type);
-                result.Add(new MissingRefAssetData(assetPath, type, typeName, guidStr, refsData));
+                results.Add(new MissingRefAssetData(assetPath, type, typeName, guidStr, refsData));
             }
 
-            ResolveReferences(result, allGuids, allFileIDs);
-            return result;
+            ResolveReferences(results, allGuids, allFileIDs);
         }
 
         private static void ResolveReferences(List<MissingRefAssetData> assets, HashSet<string> allGuids, HashSet<long> allFileIDs)

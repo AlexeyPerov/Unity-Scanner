@@ -42,7 +42,7 @@ namespace UnityScanner.Categories.ShaderAnalysis
             {
                 if (shader.IsErrorShader)
                 {
-                    shader.AddCustomWarning("Error shader — resolves to internal error");
+                    shader.AddError("Error shader — resolves to internal error");
                     var matCount = shader.ReferencingMaterials.Count;
                     issues.Add(MakeIssue(
                         CodeErrorShader,
@@ -58,7 +58,7 @@ namespace UnityScanner.Categories.ShaderAnalysis
                 if (settings.DetectFallbackShaders && shader.IsFallbackShader)
                 {
                     var fallback = ShaderAnalysisScanner.GetShaderFallbackName(shader.Shader, shader.Path);
-                    shader.AddCustomWarning($"Has fallback shader: {fallback}");
+                    shader.AddInfo($"Has fallback shader: {fallback}");
                     issues.Add(MakeIssue(
                         CodeFallbackShader,
                         $"Shader '{shader.Name}' has fallback shader '{fallback}'.",
@@ -69,7 +69,7 @@ namespace UnityScanner.Categories.ShaderAnalysis
 
                 if (shader.VariantCount > variantThreshold)
                 {
-                    shader.AddCustomWarning($"Variant explosion: {shader.VariantCount} estimated variants (threshold: {variantThreshold})");
+                    shader.AddWarning($"Variant explosion: {shader.VariantCount} estimated variants (threshold: {variantThreshold})");
                     issues.Add(MakeIssue(
                         CodeVariantExplosion,
                         $"Shader '{shader.Name}' estimated variant count ({shader.VariantCount}) exceeds threshold ({variantThreshold}). " +
@@ -84,7 +84,7 @@ namespace UnityScanner.Categories.ShaderAnalysis
 
                 if (shader.PassCount > passThreshold)
                 {
-                    shader.AddCustomWarning($"Pass count exceeded: {shader.PassCount} passes (threshold: {passThreshold})");
+                    shader.AddWarning($"Pass count exceeded: {shader.PassCount} passes (threshold: {passThreshold})");
                     issues.Add(MakeIssue(
                         CodePassCountExceeded,
                         $"Shader '{shader.Name}' has {shader.PassCount} passes (threshold: {passThreshold}).",
@@ -99,7 +99,7 @@ namespace UnityScanner.Categories.ShaderAnalysis
                     var expensiveKws = ShaderAnalysisScanner.GetExpensiveKeywordsForProfile(shader.Keywords, profile);
                     if (expensiveKws.Count > 0)
                     {
-                        shader.AddCustomWarning($"Expensive keywords for {profile.DisplayName}: {string.Join(", ", expensiveKws)}");
+                        shader.AddWarning($"Expensive keywords for {profile.DisplayName}: {string.Join(", ", expensiveKws)}");
                         issues.Add(MakeIssue(
                             CodeExpensiveFeatureForPlatform,
                             $"Shader '{shader.Name}' uses expensive keywords for {profile.DisplayName} profile: {string.Join(", ", expensiveKws)}.",
@@ -115,7 +115,7 @@ namespace UnityScanner.Categories.ShaderAnalysis
                     if (profile.Id == PlatformProfilePresets.Mobile &&
                         shader.RenderPipeline == "HDRP")
                     {
-                        shader.AddCustomWarning($"Pipeline mismatch: HDRP shader on Mobile profile");
+                        shader.AddWarning($"Pipeline mismatch: HDRP shader on Mobile profile");
                         issues.Add(MakeIssue(
                             CodePlatformKeywordMismatch,
                             $"Shader '{shader.Name}' is an HDRP shader but target profile is Mobile.",
@@ -131,7 +131,7 @@ namespace UnityScanner.Categories.ShaderAnalysis
             {
                 if (mat.IsUsingErrorShader)
                 {
-                    mat.AddCustomWarning("Uses error shader");
+                    mat.AddError("Uses error shader");
                     issues.Add(MakeIssue(
                         CodeErrorShader,
                         $"Material '{mat.Name}' uses error shader.",

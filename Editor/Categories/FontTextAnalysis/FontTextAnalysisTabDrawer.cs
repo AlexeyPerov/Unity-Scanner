@@ -133,8 +133,7 @@ namespace UnityScanner.Categories.FontTextAnalysis
                 if (f.FallbackChainDepth > 0)
                     GUILayout.Label($"Fallback Chain ({f.FallbackChainDepth}): {string.Join(" -> ", f.FallbackChainNames)}", EditorStyles.miniLabel);
             }
-            if (f.CustomWarnings != null)
-                foreach (var w in f.CustomWarnings) USGUIUtilities.DrawColoredLabel(w, Color.yellow);
+            USGUIUtilities.DrawCustomWarnings(f);
             EditorGUILayout.EndVertical();
             EditorGUI.indentLevel--;
         }
