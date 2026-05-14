@@ -1,0 +1,25 @@
+{
+  "name": "unityscanner-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for UnityScanner — AI-assisted Unity project health analysis",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "unityscanner-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "keywords": ["mcp", "unity", "scanner", "project-health"],
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0"
+  }
+}

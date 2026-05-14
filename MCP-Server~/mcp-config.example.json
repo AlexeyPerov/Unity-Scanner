@@ -1,0 +1,13 @@
+{
+  "unityPath": "/Applications/Unity/Hub/Editor/6000.0.42f1/Unity.app/Contents/MacOS/Unity",
+  "projectPath": "/path/to/your/UnityProject",
+  "timeouts": {
+    "default": 120,
+    "runAll": 300,
+    "runCategory": 180,
+    "listCategories": 60,
+    "getSettings": 60,
+    "baselineCreate": 300,
+    "regressionCheck": 300
+  }
+}

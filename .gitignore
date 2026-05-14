@@ -78,6 +78,7 @@ crashlytics-build.properties
 !*.obj
 !/*Documentation~/
 !/*Screenshots~/
+!/*MCP-Server~/
 
 # Archives
 *.zip
