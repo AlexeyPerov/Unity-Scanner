@@ -29,17 +29,12 @@ All categories share a unified issue model with severity levels: `Verbose`, `Inf
 
 # Ways of usage
 
-## To analyze your project..
+## To perform project analysis..
 ..open `Tools > Unity Scanner` to launch the main window.
 
 Select categories in the Setup tab and click "Run All Selected", or navigate to any category tab and click the Scan/Refresh button to run it individually.
 
 Each category tab shows filters, sort controls, expandable detail rows, and export buttons.
-
-## To find references to selected assets..
-..select assets in the Project browser and use the context menu option `[US] Find References In Project`.
-
-This opens a dedicated window listing all assets that reference your selection, with search, sort, and filter controls.
 
 ## To run from CI/batch mode..
 ..use the programmatic API:
@@ -61,6 +56,12 @@ UnityScannerBatch.RunMissingReferences();
 UnityScannerBatch.RunShaderAnalysis(new BatchOptions { PlatformProfile = "mobile" });
 UnityScannerBatch.RunBuildPlatformReadiness(new BatchOptions { FailOnSeverity = "error" });
 ```
+
+## To find references to selected assets..
+..select assets in the Project browser and use the context menu option `[US] Find References In Project`.
+
+This opens a dedicated window listing all assets that reference your selection, with search, sort, and filter controls.
+
 
 ## Analysis Examples
 
